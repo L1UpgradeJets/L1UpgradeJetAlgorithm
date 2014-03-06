@@ -1,0 +1,240 @@
+// Original Author:  Mark Baber Imperial College, London
+
+#include "SLHCUpgradeSimulations/L1CaloTrigger/interface/L1CaloAlgoBase.h"
+
+
+#include "SimDataFormats/SLHC/interface/L1TowerJet.h"
+#include "SimDataFormats/SLHC/interface/L1TowerJetFwd.h"
+#include "SimDataFormats/SLHC/interface/L1CaloTower.h"
+#include "SimDataFormats/SLHC/interface/L1CaloTowerFwd.h"
+
+
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+
+
+#include "SimDataFormats/SLHC/interface/L1CaloTriggerSetup.h"
+#include "SimDataFormats/SLHC/interface/L1CaloTriggerSetupRcd.h"
+
+
+#include <algorithm> 
+#include <string> 
+
+
+#include <algorithm> 
+#include <string> 
+#include <vector>
+ 
+// Candidates for RECO jets on TT
+#include "SLHCUpgradeSimulations/L1CaloTrigger/interface/TriggerTowerGeometry.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
+
+
+class L1RECOCaloJetProducer:public edm::EDProducer
+{
+  public:
+	L1RECOCaloJetProducer( const edm::ParameterSet & );
+        ~L1RECOCaloJetProducer(  );
+	virtual void produce( edm::Event &, const edm::EventSetup & );
+
+  //void algorithm( const int &, const int & );
+       
+
+  private:
+
+        // Jet Pt and TT E seed thresholds
+        double jetPtThreshold, seedEThreshold;
+
+
+        // Tower geometry converter
+        TriggerTowerGeometry mTowerGeo;
+        // TT RECO jets 
+        //        reco::PFCandidateCollection *mRECOJets;
+
+
+	edm::ESHandle < L1CaloTriggerSetup >  mCaloTriggerSetup;
+
+	edm::InputTag mInputCollectionTag;
+	edm::Handle   < l1slhc::L1CaloTowerCollection > mInputCollection;
+	std::auto_ptr < l1slhc::L1CaloTowerCollection > mOutputCollection;
+
+
+};
+
+L1RECOCaloJetProducer::L1RECOCaloJetProducer( const edm::ParameterSet & aConfig ):
+mInputCollectionTag( aConfig.getParameter < edm::InputTag > ( "src" ) ),
+mOutputCollection( NULL )
+{
+  // register product
+  produces < reco::PFCandidateCollection > ( "RECOJets" );
+
+  /*
+        // load the jet Pt and TT E seed thresholds
+        jetPtThreshold = aConfig.getParameter<double> ("JetPtThreshold");
+	seedEThreshold = aConfig.getParameter<double> ("SeedEnergyThreshold");
+
+
+	  throw cms::Exception("Invalid ring subtraction type")
+	    << "ERROR: Ring subtraction method '" << lRingSubtractionType 
+	    << "' not recognised, check the input in the configuration file matches a valid type.\n";
+
+  */	
+
+
+
+
+
+}
+
+L1RECOCaloJetProducer::~L1RECOCaloJetProducer(  )
+{
+}
+
+
+
+void L1RECOCaloJetProducer::produce( edm::Event & aEvent, const edm::EventSetup & aSetup )
+{
+
+
+
+
+	aSetup.get < L1CaloTriggerSetupRcd > (  ).get( mCaloTriggerSetup );
+
+	aEvent.getByLabel( mInputCollectionTag, mInputCollection );
+
+	// create a new l1slhc::L1CaloTowerCollection (auto_ptr should handle deletion of the last one correctly)
+	mOutputCollection = std::auto_ptr < l1slhc::L1CaloTowerCollection > ( new l1slhc::L1CaloTowerCollection );
+
+
+
+
+  for( l1slhc::L1CaloTowerCollection::const_iterator lInputIt = mInputCollection->begin() ; lInputIt != mInputCollection->end() ; ++lInputIt ){
+    //    lMeanEcal[ lInputIt->iEta() ] += double(lInputIt->E());
+    //  lMeanHcal[ lInputIt->iEta() ] += double(lInputIt->H());
+  }
+
+
+
+
+
+
+
+
+
+  // TT collection
+  edm::Handle<l1slhc::L1CaloTowerCollection> caloTowers;
+  aEvent.getByLabel(aSetup.getParameter<edm::InputTag>("CalorimeterTowers"), caloTowers);
+
+  if(!caloTowers.isValid()){
+    evValid = false;
+  }
+
+  if( !evValid ) {
+    edm::LogWarning("MissingProduct") << aSetup.getParameter<edm::InputTag>("CalorimeterTowers")      
+				      << std::endl; 
+  }
+  else{
+
+
+
+    for( l1slhc::L1CaloTowerCollection::const_iterator lTT_It = caloTowers->begin() ;
+	 lTT_It != caloTowers->end() ; ++lTT_It ){
+    
+     
+      // DO STUFF
+ 
+    }
+    
+
+  //  for ( unsigned int iTT = 0; iTT < ){
+
+  /*
+    if (iEta > 21){
+      std::cout << "iEta = " << "\tiPhi = " << "\tE = " << "\tPhi = " << "\n";
+    }
+
+
+
+    // storage container for RECO jets (MAY REQUIRE A CVS CO of: DataForm
+    //std::auto_ptr< reco::PFCandidateCollection > mRECOJetColl(new reco:
+    //      mRECOJets   = std::auto_ptr < reco::PFCandidateCollection >
+    //      std::auto_ptr < reco::PFCandidateCollection >  mRECOJets ( ne
+     //      aEvent.put( mRECOJetColl, "RECOJets");
+
+
+
+  */
+    //}
+
+  }
+
+
+}
+
+
+void L1RECOCaloJetProducer::algorithm( const int &aEta, const int &aPhi )
+{
+      
+  int lTowerIndex                     = mCaloTriggerSetup->getBin( aEta, aPhi );
+  std::pair < int, int > lTowerEtaPhi = mCaloTriggerSetup->getTowerEtaPhi( lTowerIndex );
+
+  // Construct a TowerJet object at the current iEta, iPhi position with given jet shape and size
+  //l1slhc::L1TowerJet lJet( mJetDiameter, mJetShape , mJetShapeMap , lTowerEtaPhi.first , lTowerEtaPhi.second  );
+
+  // Parameter to determine whether at least one TT in the tower jet exceeds the specified energy threshold
+  bool exceedsSeedThreshold = false;
+
+  
+  
+  //  l1slhc::L1CaloTowerCollection::const_iterator lTowerItr = fetch( aEta, lPhi );
+
+
+//   if ( lTowerItr != mInputCollection->end(  ) ){
+//     l1slhc::L1CaloTowerRef lRef( mInputCollection, lTowerItr - mInputCollection->begin(  ) );
+    
+  
+
+    
+//     // Build candidates (define candidate in HCAL as neutral hadron)
+//     double eta  = mTowerGeo.eta( aIeta );
+//     double phi  = mTowerGeo.phi( aIphi );
+//     PFCandidate candRECO(0, math::XYZTLorentzVectorD(lET*cos(phi),lET*sin(phi),lET*sinh(eta),lET*cosh(eta)), reco::PFCandidate::h0);
+//     candColl->push_back(candRECO);		
+
+
+    /*
+    // Check that at least one TT exceeds a seed energy threshold
+    if ( lRef->E() > seedEThreshold ){
+    exceedsSeedThreshold = true;
+    }
+    */
+    
+    // Add TT to the tower jet
+    //  lJet.addConstituent( lRef );
+    
+  /*
+  // Add jets to the output collection, require that the at least one TT possess energy greater than the specified 
+  // seed threshold and that the jet possesses a Pt greater than the specified jet Pt threshold
+  if ( (exceedsSeedThreshold) && (lJet.E() > jetPtThreshold) ){
+
+    lJet.setP4( math::PtEtaPhiMLorentzVector( lJet.E(), lJet.WeightedEta(), lJet.WeightedPhi(), 0. ) );
+
+    // Store jet in the output collection
+    mOutputCollection->insert( lTowerEtaPhi.first, lTowerEtaPhi.second, lJet );
+
+  }
+  */
+
+}
+
+
+
+
+
+
+DEFINE_EDM_PLUGIN( edm::MakerPluginFactory, edm::WorkerMaker < L1RECOCaloJetProducer >, "L1RECOCaloJetProducer" );
+DEFINE_FWK_PSET_DESC_FILLER( L1RECOCaloJetProducer );
