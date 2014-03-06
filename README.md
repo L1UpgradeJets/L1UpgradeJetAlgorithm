@@ -43,18 +43,19 @@ Running and analysing the L1 upgrade jet algorithm
 
 To run the jet emulator:
     
-    - Run the config file <i>ProduceJetCollections.py</i> in the <i>AnalyseUpgradeJets</i> directory:
-    <code>    cmsRun ProduceJetCollections.py </code>
-    - This will by default produce a ROOT file <i>JetCollections.root</i> which contains a large amount of 
+  - Run the config file <i>ProduceJetCollections.py</i> in the <i>AnalyseUpgradeJets</i> directory:
+  <code>    cmsRun ProduceJetCollections.py </code>
+  - This will by default produce a ROOT file <i>JetCollections.root</i> which contains a large amount of 
     information from: caloTowers and trigger towers to offline and online jet collections and energy sums.
 
 
 To analyse the output:
 
-  - The output of <i>ProduceJetCollections.py</i> can be analysed by running <i>AnalyseJets.py</i>:
+  - The output of <i>ProduceJetCollections.py</i> can be analysed by running <i>AnalyseJets.py</i>:<br>
   <code>   cmsRun AnalyseJets.py </code>
-  - The input ROOT file given to AnalyseJets.py should be modified to correspond to your file, i.e. edit:
-          process.source = cms.Source("PoolSource",
+  - The input ROOT file given to AnalyseJets.py should be modified to correspond to your file, i.e. edit:<br>
+  <code>
+          process.source = cms.Source("PoolSource",<br>
                             fileNames = cms.untracked.vstring( 'file:/home/hep/mb1512/JetAnalyser/CMSSW_6_2_2/src/JetCollections.root'),                     
-
+</code>
 
