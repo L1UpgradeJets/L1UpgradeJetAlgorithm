@@ -1,0 +1,12 @@
+<use name="FWCore/Framework"/>
+<use name="FWCore/PluginManager"/>
+<use name="FWCore/ParameterSet"/>
+<use name="DataFormats/VertexReco"/>
+<use name="DataFormats/L1Trigger"/>
+<use name="SimDataFormats/SLHC"/>
+<use name="CommonTools/UtilAlgos"/>
+<use name="root"/>
+<use name="roottmva"/>
+<use name="JetMETCorrections/Objects"/>
+<use name="fastjet"/>
+<flags EDM_PLUGIN="1"/>

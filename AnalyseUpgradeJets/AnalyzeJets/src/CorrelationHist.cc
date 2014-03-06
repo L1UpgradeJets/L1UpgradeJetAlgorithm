@@ -1,0 +1,909 @@
+// -*- C++ -*-
+//
+// Package:    CorrelationHist
+// Class:      CorrelationHist
+// 
+/**\class CorrelationHist CorrelationHist.cc AnalyseUpgradeJets/src/CorrelationHist.cc
+
+ Description: Produces histograms of jets
+
+
+ Implementation:
+     [Notes on implementation]
+*/
+//
+// Original Author:  Mark Baber
+//         Created:  Tue Oct  3 15:21:18 BST 2013
+// $Id$
+//
+//
+
+
+// system include files
+#include <memory>
+
+// user include files
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+//#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/EDAnalyzer.h"
+
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TH3F.h"
+#include "TProfile.h"
+#include "TTree.h"
+#include "TCanvas.h"
+#include "TLatex.h"
+#include "TLorentzVector.h"
+#include "TMacro.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h" 
+#include "DataFormats/L1Trigger/interface/L1JetParticle.h"
+#include "DataFormats/L1Trigger/interface/L1JetParticleFwd.h"
+#include "SimDataFormats/SLHC/interface/L1CaloTower.h"
+#include "SimDataFormats/SLHC/interface/L1TowerJet.h"
+#include "SimDataFormats/SLHC/interface/L1TowerJetFwd.h"
+#include "DataFormats/L1Trigger/interface/L1EtMissParticle.h"
+#include "DataFormats/L1Trigger/interface/L1EtMissParticleFwd.h"
+#include "JetMETCorrections/Objects/interface/JetCorrector.h"
+#include "DataFormats/JetReco/interface/CaloJetCollection.h"
+#include "FWCore/Framework/interface/LuminosityBlock.h"
+
+
+
+
+#include "DataFormats/JetReco/interface/JetID.h" 
+#include "RecoJets/JetProducers/interface/JetIDHelper.h"
+#include "DataFormats/Common/interface/ValueMap.h"
+
+#include "SimDataFormats/SLHC/interface/EtaPhiContainer.h"
+#include "SLHCUpgradeSimulations/L1CaloTrigger/interface/TriggerTowerGeometry.h"
+
+
+#include "DataFormats/Luminosity/interface/LumiDetails.h"
+
+
+#include "AnalyseUpgradeJets/AnalyzeJets/interface/printing.h"
+#include "AnalyseUpgradeJets/AnalyzeJets/interface/histBooker.h"
+// #include "AnalyseUpgradeJets/AnalyzeJets/interface/JetMatch.h"
+// #include "AnalyseUpgradeJets/AnalyzeJets/src/helperFunctions.cc"
+
+#include <algorithm>  // for sorting
+
+
+
+// Print debugging messages
+//#define VERBOSE
+
+// REMOVE THIS..................
+const double PI = 3.141592654;
+
+  // to ensure bins are centred on the 'correct' value:
+  // number of bins = [|Max_corr| + |Min_corr|]/binWidth, where Max_corr = Real max + 0.5*binWidth
+
+
+// // Object for storing histogram binning parameters
+// struct histParam{
+
+//   int    bins;  // Number of bins
+//   double low;   // Range low
+//   double high;  // Range high
+
+//   // Initialise object
+//   histParam( int _bins, double _low, double _high ):bins(_bins),low(_low),high(_high){};
+
+// };
+
+
+
+//extern struct histParam;
+
+
+// //  const double delPTBin(201),  delPTLow(-2.5125), delPTHigh(2.5125);
+
+
+
+// //  const double delPTbin(85),   delPTLow(-0.6125), delPTHigh(1.5125);
+// //   const double delEtaBin(121), delEtaLow(-0.605), delEtaHigh(0.605);
+// //   const double delPhiBin(121), delPhiLow(-0.605), delPhiHigh(0.605);
+//    const histParam deltaPT(85,   -0.6125, 1.5125);
+//    const histParam deltaEta(121,  -0.605, 0.605);
+//    const histParam deltaPhi(121,  -0.605, 0.605);
+
+  
+// //   const double offPTBin(161),  offPTLow(-0.5),   offPTHigh(160.5);
+// //   const double L1PTBin(161),   L1PTLow(-0.5),    L1PTHigh(160.5);
+// //   const double offEtaBin(61),  offEtaLow(-3.05), offEtaHigh(3.05);
+// //   const double offPhiBin(63),  offPhiLow(-3.15), offPhiHigh(3.15);
+//    const histParam L1PT(161,   -0.5, 160.5);
+//    const histParam offPT(161,  -0.5, 160.5);
+//    const histParam offEta(61, -3.05, 3.05);
+//    const histParam offPhi(63, -3.15, 3.15);
+  
+// //  const double PUbin(81),      PUlow(-0.5),      PUhigh(80.5);
+// //  const double JetBin(50),     JetLow(-0.5),     JetHigh(49.5);
+// const histParam PU(81, -0.5, 80.5);
+// // Is this even needed??? Duplication of PU?????????????????????????????????????????
+// const histParam JetMultiplicity(50, -0.5, 49.5);
+
+
+
+
+
+// using namespace l1slhc;
+// using namespace edm;
+// using namespace std;
+// using namespace reco;
+
+
+
+
+
+
+
+
+
+
+
+//
+// class declaration
+//
+
+//class CorrelationHist : public edm::EDProducer {
+class CorrelationHist : public edm::EDAnalyzer {
+   public:
+      explicit CorrelationHist(const edm::ParameterSet&);
+      ~CorrelationHist();
+
+      static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+
+   private:
+      virtual void beginJob() ;
+  //      virtual void produce(edm::Event&, const edm::EventSetup&);
+      virtual void analyze(const edm::Event&, const edm::EventSetup&);
+      virtual void endJob() ;
+      
+      virtual void beginRun(edm::Run&, edm::EventSetup const&);
+      virtual void endRun(edm::Run&, edm::EventSetup const&);
+      virtual void beginLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
+      virtual void endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
+
+  
+      // ----------member functions ---------------------------
+        
+
+
+
+
+      // ----------member data ---------------------------
+      edm::ParameterSet conf_;
+      edm::Service<TFileService> fs;
+
+
+      // Histogram containers
+      std::map< TString, TH1*> hist1D;
+      std::map< TString, TH1*> hist2D;
+
+      // Number of reconstructed ak5 primary vertices 
+      int NVTX;
+
+  // ****************************************
+  // *          TT event quantities         *
+  // ****************************************
+  int EFired;
+  int HFired;
+  int EorHFired;
+  int EandHFired;
+  int ETotal;
+  int HTotal;
+  int EMax;
+  int HMax;
+
+  // ******************************
+  // *        TT threshold        *
+  // ******************************
+
+  // TT threshold
+  std::vector<int> EFiredAboveThreshold;
+  std::vector<int> HFiredAboveThreshold;
+  std::vector<int> EplusHFiredAboveThreshold;
+
+  // TT thresholds                                                                                                                                         
+  std::vector <int> ttEThreshold;
+  std::vector <int> ttHThreshold;
+  std::vector <int> ttEplusHThreshold;
+
+  // ******************************
+  // *          TT Local          *
+  // ******************************
+
+  std::vector<int> LETotal;
+  std::vector<int> LHTotal;
+  std::vector<int> LEMax;
+  std::vector<int> LHMax;
+  
+  std::vector<int> LEMedian;
+  std::vector<int> LHMedian;
+  std::vector<int> LEplusHMedian;
+  
+  // iEta ring width                                                                                                                                       
+  int ttRingWidth;
+  int lBins;
+
+
+};
+
+//
+// constants, enums and typedefs
+//
+
+
+//
+// static data member definitions
+//
+
+//
+// constructors and destructor
+//
+CorrelationHist::CorrelationHist(const edm::ParameterSet& iConfig): conf_(iConfig)
+{
+
+
+
+
+
+  // ****************************************************************************************************
+  // *                                 Load configuration parameters                                    *
+  // ****************************************************************************************************
+  PRINT("TT thresholds")
+
+  // TT thresholds
+  ttEThreshold      = iConfig.getParameter< std::vector<int> > ("TTEThreshold");
+  sort (ttEThreshold.begin(), ttEThreshold.end());   // ensure the bins are in ascending order 
+  ttHThreshold      = iConfig.getParameter< std::vector<int> > ("TTHThreshold");
+  sort (ttHThreshold.begin(), ttHThreshold.end());   // ensure the bins are in ascending order 
+  ttEplusHThreshold = iConfig.getParameter< std::vector<int> > ("TTEplusHThreshold");
+  sort (ttHThreshold.begin(), ttHThreshold.end());   // ensure the bins are in ascending order 
+
+  // iEta ring width
+  ttRingWidth       = iConfig.getParameter<int>("TTRingWidth");
+
+  if ( 56 % ttRingWidth != 0){
+    edm::LogWarning("TT ring width error") << "Error, iEta ring width of " << ttRingWidth 
+					   << " does yield integer ring widths. " 
+					   << "Specify a value of 'TTRingWidth; that is a factor of 56"
+					   << " (1, 2, 4, 7, 8, 14, 28, 56).\n";
+  }
+
+
+  // Number of local bins
+  lBins = 56/ttRingWidth;
+
+
+
+
+
+
+  // Associate the histogram container with the histogram booker, a class for handling histogram booking
+  histBooker booker( &hist1D, &hist2D );
+
+
+  // **********************************************************************************
+  // *               Book histograms for current and upgrade algorithms               *
+  // **********************************************************************************
+
+  // **************************
+  // *  TT histogram binning  *
+  // **************************
+//   const Int_t TTetaBin = 56;
+//   const Int_t TTphiBin = 72;
+
+//   // TT eta binning
+//   const double TTetaBins[] = {-3.0,-2.65,-2.5,-2.322,-2.172,-2.043,-1.93,-1.83,-1.74,-1.653,
+// 				-1.566,-1.4790,-1.3920,-1.3050,-1.2180,-1.1310,-1.0440,-0.9570,
+// 				-0.8700,-0.7830,-0.6950,-0.6090,-0.5220,-0.4350,-0.3480,-0.2610,
+// 				-0.1740,-0.0870,
+// 				0.,
+// 				0.0870,0.1740,
+// 				0.2610,0.3480,0.4350,0.5220,0.6090,0.6950,0.7830,0.8700,
+// 				0.9570,1.0440,1.1310,1.2180,1.3050,1.3920,1.4790,1.566,
+// 				1.653,1.74,1.83,1.93,2.043,2.172,2.322,2.5,2.65,3.0};
+  
+//   // TT phi binning
+//   double phiDiv = 2*PI/(TTphiBin);
+//   double TTphiBins[TTphiBin + 1];
+//   for (Int_t iPhi = 0; iPhi < TTphiBin + 1; iPhi++) {
+//     double phi = iPhi*phiDiv - PI;
+//     TTphiBins[iPhi] = phi;
+//   }
+
+
+
+
+
+
+  // ****************************************************************************************************
+  // *                                     Histogram booking                                            * 
+  // ****************************************************************************************************
+  PRINT("Histogram booking")
+
+  
+  // ************************************************************
+  // *                  Correlation plots                       *
+  // ************************************************************
+  
+  TFileDirectory corrSubDir = fs->mkdir( "Correlations" );
+
+
+  booker.book2DTProf( "TTEFired_vs_NVTX",     corrSubDir, "Ecal cells fired vs N_{VTX};N_{VTX};Ecal cells fired",       pPU, pEFired );
+  booker.book2DTProf( "TTHFired_vs_NVTX",     corrSubDir, "Hcal cells fired vs N_{VTX};N_{VTX};Hcal cells fired",       pPU, pHFired );
+  booker.book2DTProf( "TTEorHFired_vs_NVTX",  corrSubDir, "TTs fired vs N_{VTX};N_{VTX};TTs fired",                     pPU, pEorHFired );
+  booker.book2DTProf( "TTEandHFired_vs_NVTX", corrSubDir, "Ecal and Hcal fired vs N_{VTX};N_{VTX};Ecal and Hcal fired", pPU, pEandHFired );
+
+  booker.book2DTProf( "TTETotal_vs_NVTX", corrSubDir, "Total Ecal energy vs N_{VTX};N_{VTX};Total Ecal energy (L1 GeV)",          pPU, pETotal );
+  booker.book2DTProf( "TTHTotal_vs_NVTX", corrSubDir, "Total Hcal energy vs N_{VTX};N_{VTX};Total Hcal energy (L1 GeV)",          pPU, pHTotal );
+  booker.book2DTProf( "TTEplusHTotal_vs_NVTX", corrSubDir, "Total TT energy vs N_{VTX};N_{VTX};Total TT (L1 GeV)",          pPU, pEplusHTotal );
+  booker.book2DTProf( "TTEMax_vs_NVTX",   corrSubDir, "Ecal maximum energy vs N_{VTX};N_{VTX};Largest Ecal cell energy (L1 GeV)", pPU, pEMax );
+  booker.book2DTProf( "TTHMax_vs_NVTX",   corrSubDir, "Hcal maximum energy vs N_{VTX};N_{VTX};Largest Hcal cell energy (L1 GeV)", pPU, pHMax );
+
+  // ****************************************
+  // *      Book threshold histograms       *
+  // ****************************************
+
+  TFileDirectory threshSubDir = corrSubDir.mkdir( "Thresholds" );
+
+  for ( uint iE = 0; iE < ttEThreshold.size(); ++iE ){
+
+    int     ttThresh    = ttEThreshold[iE];
+    TString ttThreshStr = Form( "%d", ttThresh );
+
+    booker.book2DTProf( "TTEFired_gt_" + ttThreshStr + "_vs_NVTX", threshSubDir, "Ecal cells fired > " + ttThreshStr 
+			+ " L1 GeV vs N_{VTX};N_{VTX};Ecal cells fired", pPU, pEFired );
+    booker.book2DTProf( "TTEFired_le_" + ttThreshStr + "_vs_NVTX", threshSubDir, "Ecal cells fired #leq " + ttThreshStr 
+			+ " L1 GeV vs N_{VTX};N_{VTX};Ecal cells fired", pPU, pEFired );
+
+  }
+  for ( uint iH = 0; iH < ttHThreshold.size(); ++iH ){
+
+    int     ttThresh    = ttHThreshold[iH];
+    TString ttThreshStr = Form( "%d", ttThresh );
+
+    booker.book2DTProf( "TTHFired_gt_" + ttThreshStr + "_vs_NVTX", threshSubDir, "Hcal cells fired > " + ttThreshStr 
+			+ " L1 GeV vs N_{VTX};N_{VTX};Hcal cells fired", pPU, pHFired );
+    booker.book2DTProf( "TTHFired_le_" + ttThreshStr + "_vs_NVTX", threshSubDir, "Hcal cells fired #leq " + ttThreshStr 
+			+ " L1 GeV vs N_{VTX};N_{VTX};Hcal cells fired", pPU, pHFired );
+
+  }
+  for ( uint iEH = 0; iEH < ttEplusHThreshold.size(); ++iEH ){
+
+    int     ttThresh    = ttEplusHThreshold[iEH];
+    TString ttThreshStr = Form( "%d", ttThresh );
+
+    booker.book2DTProf( "TTEplusHFired_gt_" + ttThreshStr + "_vs_NVTX", threshSubDir, "TTs fired > " + ttThreshStr 
+			+ " L1 GeV vs N_{VTX};N_{VTX};TTs fired", pPU, pHFired );
+    booker.book2DTProf( "TTEplusHFired_le_" + ttThreshStr + "_vs_NVTX", threshSubDir, "TTs fired #leq " + ttThreshStr 
+			+ " L1 GeV vs N_{VTX};N_{VTX};TTs fired", pPU, pHFired );
+
+  }
+
+   // ************************************************************
+   // *                    Book local plots                      *
+   // ************************************************************
+
+  TFileDirectory localSubDir = corrSubDir.mkdir( "iEtaBinned" );
+
+
+  for ( int iEtaBin = 0; iEtaBin < lBins; ++iEtaBin ){
+
+     // Get the iEta range the bin covers
+     int binLow  = (iEtaBin - lBins/2)*ttRingWidth;
+     int binHigh = ((iEtaBin + 1) - lBins/2)*ttRingWidth;
+     if (binLow < 0){ binHigh--; }
+     else{ binLow++; }
+     TString binLowStr  = Form( "%d", binLow);
+     TString binHighStr = Form( "%d", binHigh);
+     TString iEtaBinStr = binLowStr + "to" + binHighStr;
+     TString iEtaBinLab = "i#eta #in [" + binLowStr + ", " + binHighStr + "]";
+
+     TFileDirectory localSubSubDir = localSubDir.mkdir( iEtaBinStr.Data() );
+
+     booker.book2DTProf( "TTLETotal_" + iEtaBinStr + "_vs_NVTX", localSubSubDir, "Total Ecal energy "   + iEtaBinLab
+			 + " vs N_{VTX};N_{VTX};Total Ecal energy (L1 GeV)", pPU, pLETotal );
+     booker.book2DTProf( "TTLHTotal_" + iEtaBinStr + "_vs_NVTX", localSubSubDir, "Total Hcal energy "   + iEtaBinLab
+			 + " vs N_{VTX};N_{VTX};Total Hcal energy (L1 GeV)", pPU, pLHTotal );
+     booker.book2DTProf( "TTLEMax_" + iEtaBinStr + "_vs_NVTX",   localSubSubDir, "Ecal maximum energy " + iEtaBinLab
+			 + " vs N_{VTX};N_{VTX};Largest Ecal cell energy (L1 GeV)", pPU, pEMax );
+     booker.book2DTProf( "TTLHMax_" + iEtaBinStr + "_vs_NVTX",   localSubSubDir, "Hcal maximum energy " + iEtaBinLab
+			 + " vs N_{VTX};N_{VTX};Largest Hcal cell energy (L1 GeV)", pPU, pHMax );
+
+     booker.book2DTProf( "TTLEMedian_" + iEtaBinStr + "_vs_NVTX",      localSubSubDir, "Median Ecal " + iEtaBinLab
+			 + " vs N_{VTX};N_{VTX};Median Ecal cell energy ", pPU, pMedianE );
+     booker.book2DTProf( "TTLHMedian_" + iEtaBinStr + "_vs_NVTX",      localSubSubDir, "Median Hcal " + iEtaBinLab
+			 + " vs N_{VTX};N_{VTX};Median Hcal cell energy ", pPU, pMedianH );
+     booker.book2DTProf( "TTLEplusHMedian_" + iEtaBinStr + "_vs_NVTX", localSubSubDir, "Median TT energy " + iEtaBinLab
+			 + " vs N_{VTX};N_{VTX};Median TT energy ",        pPU, pMedianEplusH );
+
+
+   }
+
+
+
+
+
+
+
+
+
+  
+}
+
+
+CorrelationHist::~CorrelationHist()
+{
+ 
+   // do anything here that needs to be done at desctruction time
+   // (e.g. close files, deallocate resources etc.)
+
+}
+
+
+//
+// member functions
+//
+
+// **********************************************************************
+// *                              analyze()                             *
+// *                                                                    *
+// *                                                                    *  
+// **********************************************************************        
+//CorrelationHist::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
+void
+CorrelationHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+{
+   using namespace edm;
+
+
+   bool evValid = true;
+
+
+
+
+   // ****************************************************************************************************
+   // *                                             Handles                                              *
+   // ****************************************************************************************************
+      
+   //Need this for information about PU
+   edm::Handle<int> vertices;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("NumPrimaryVertices"), vertices); 
+   if(!vertices.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("NumPrimaryVertices") << std::endl;
+     evValid = false;
+   }
+
+
+   // ************************************************************
+   // *   `                      TT info                         *
+   // ************************************************************
+
+   edm::Handle<int> TTEFired;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTEFired"), TTEFired); 
+   if(!TTEFired.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTEFired") << std::endl;
+     evValid = false;
+   }
+   edm::Handle<int> TTHFired;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTHFired"), TTHFired); 
+   if(!TTHFired.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTHFired") << std::endl;
+     evValid = false;
+   }
+   edm::Handle<int> TTEorHFired;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTEorHFired"), TTEorHFired); 
+   if(!TTEorHFired.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTEorHFired") << std::endl;
+     evValid = false;
+   }
+   edm::Handle<int> TTEandHFired;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTEandHFired"), TTEandHFired); 
+   if(!TTEandHFired.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTEandHFired") << std::endl;
+     evValid = false;
+   }
+
+   edm::Handle<int> TTETotal;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTETotal"), TTETotal); 
+   if(!TTETotal.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTETotal") << std::endl;
+     evValid = false;
+   }
+   edm::Handle<int> TTHTotal;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTHTotal"), TTHTotal); 
+   if(!TTHTotal.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTHTotal") << std::endl;
+     evValid = false;
+   }
+   edm::Handle<int> TTEMax;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTEMax"), TTEMax); 
+   if(!TTEMax.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTEMax") << std::endl;
+     evValid = false;
+   }
+   edm::Handle<int> TTHMax;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTHMax"), TTHMax); 
+   if(!TTHMax.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTHMax") << std::endl;
+     evValid = false;
+   }
+
+
+   // Thresholds     
+   edm::Handle< std::vector<int> > TTEFiredAboveThreshold;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTEFiredAboveThreshold"), TTEFiredAboveThreshold);
+   if(!TTEFiredAboveThreshold.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTEFiredAboveThreshold") << std::endl;
+     evValid = false;
+   }
+   edm::Handle< std::vector<int> > TTHFiredAboveThreshold;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTHFiredAboveThreshold"), TTHFiredAboveThreshold);
+   if(!TTHFiredAboveThreshold.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTHFiredAboveThreshold") << std::endl;
+     evValid = false;
+   }
+   edm::Handle< std::vector<int> > TTEplusHFiredAboveThreshold;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTEplusHFiredAboveThreshold"), TTEplusHFiredAboveThreshold);
+   if(!TTEplusHFiredAboveThreshold.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTEplusHFiredAboveThreshold") << std::endl;
+     evValid = false;
+   }
+
+
+   // ****************************************
+   // *                Local                 *
+   // ****************************************
+
+   edm::Handle< std::vector<int> > TTLETotal;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTLETotal"), TTLETotal);
+   if(!TTLETotal.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTLETotal") << std::endl;
+     evValid = false;
+   }
+   edm::Handle< std::vector<int> > TTLHTotal;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTLHTotal"), TTLHTotal);
+   if(!TTLHTotal.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTLHTotal") << std::endl;
+     evValid = false;
+   }
+   edm::Handle< std::vector<int> > TTLEMax;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTLEMax"), TTLEMax);
+   if(!TTLEMax.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTLEMax") << std::endl;
+     evValid = false;
+   } 
+   edm::Handle< std::vector<int> > TTLHMax;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTLHMax"), TTLHMax);
+   if(!TTLHMax.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTLHMax") << std::endl;
+     evValid = false;
+   }
+
+   edm::Handle< std::vector<int> > TTLEMedian;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTLEMedian"), TTLEMedian);
+   if(!TTLEMedian.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTLEMedian") << std::endl;
+     evValid = false;
+   }
+   edm::Handle< std::vector<int> > TTLHMedian;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTLHMedian"), TTLHMedian);
+   if(!TTLHMedian.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTLHMedian") << std::endl;
+     evValid = false;
+   }
+   edm::Handle< std::vector<int> > TTLEplusHMedian;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("TTLEplusHMedian"), TTLEplusHMedian);
+   if(!TTLEplusHMedian.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("TTLEplusHMedian") << std::endl;
+     evValid = false;
+   }
+
+
+
+
+   // ********************************************************************************
+   // *                                Event details                                 *
+   // ********************************************************************************
+    // ADD THIS WITH NEW NTUPLES
+//     edm::Handle<LumiDetails> lumiDetail;
+//     iEvent.getLuminosityBlock().getByLabel("lumiProducer", lumiDetail);
+//     if(!lumiDetail.isValid()) {
+//       edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("lumiProducer") << std::endl;
+//       evValid = false;
+//     } 
+
+
+
+  if (evValid){
+  
+    
+    // **************************************************
+    // *               Load event details               *
+    // **************************************************
+
+//     uint Runnr            = iEvent.id().run();
+//     uint Eventnr          = iEvent.id().event();
+//     uint Orbitnr          = iEvent.orbitNumber();
+//     uint bx               = iEvent.bunchCrossing();
+
+    // ADD THIS WITH NEW NTUPLES
+//      double rawBxLumi      = lumiDetail->lumiValue( LumiDetails::kOCC1, iEvent.bunchCrossing() );
+//      double rawBxLumiError = lumiDetail->lumiError( LumiDetails::kOCC1, iEvent.bunchCrossing() );
+//      std::cout << "Raw lumi = " << rawBxLumi << "\n";
+    
+    // Extract number of reconstructed ak5 primary vertices
+    NVTX       = *vertices;
+    
+    
+    // **************************************************
+    // *                 Load TT details                *
+    // **************************************************
+   
+    EFired     = *TTEFired;
+    HFired     = *TTHFired;
+    EorHFired  = *TTEorHFired;
+    EandHFired = *TTEandHFired;
+    ETotal     = *TTETotal;
+    HTotal     = *TTHTotal;
+    EMax       = *TTEMax;
+    HMax       = *TTHMax;
+
+    // Threshold
+    EFiredAboveThreshold      = *TTEFiredAboveThreshold;
+    HFiredAboveThreshold      = *TTHFiredAboveThreshold;
+    EplusHFiredAboveThreshold = *TTEplusHFiredAboveThreshold;
+
+    // Local
+    LETotal = *TTLETotal;
+    LHTotal = *TTLHTotal;
+    LEMax   = *TTLEMax;
+    LHMax   = *TTLHMax;
+    LEMedian      = *TTLEMedian;
+    LHMedian      = *TTLHMedian;
+    LEplusHMedian = *TTLEplusHMedian;
+
+    
+       // ****************************************************************************************************
+      // *                                           Histograms                                             *
+     // ****************************************************************************************************
+    //
+   //
+   hist2D["TTEFired_vs_NVTX"]         ->Fill( NVTX, EFired );
+   hist1D["TTEFired_vs_NVTX_prof"]    ->Fill( NVTX, EFired );
+   hist2D["TTHFired_vs_NVTX"]         ->Fill( NVTX, HFired );
+   hist1D["TTHFired_vs_NVTX_prof"]    ->Fill( NVTX, HFired );
+   hist2D["TTEorHFired_vs_NVTX"]      ->Fill( NVTX, EorHFired );
+   hist1D["TTEorHFired_vs_NVTX_prof"] ->Fill( NVTX, EorHFired );
+   hist2D["TTEandHFired_vs_NVTX"]     ->Fill( NVTX, EandHFired );
+   hist1D["TTEandHFired_vs_NVTX_prof"]->Fill( NVTX, EandHFired );
+
+   hist2D["TTETotal_vs_NVTX"]     ->Fill( NVTX, ETotal );
+   hist1D["TTETotal_vs_NVTX_prof"]->Fill( NVTX, ETotal );
+   hist2D["TTHTotal_vs_NVTX"]     ->Fill( NVTX, HTotal );
+   hist1D["TTHTotal_vs_NVTX_prof"]->Fill( NVTX, HTotal );
+   hist2D["TTEplusHTotal_vs_NVTX"]     ->Fill( NVTX, ETotal + HTotal );
+   hist1D["TTEplusHTotal_vs_NVTX_prof"]->Fill( NVTX, ETotal + HTotal );
+   hist2D["TTEMax_vs_NVTX"]       ->Fill( NVTX, EMax );
+   hist1D["TTEMax_vs_NVTX_prof"]  ->Fill( NVTX, EMax );
+   hist2D["TTHMax_vs_NVTX"]       ->Fill( NVTX, HMax );
+   hist1D["TTHMax_vs_NVTX_prof"]  ->Fill( NVTX, HMax );
+
+
+
+
+   // ************************************************************
+   // *                     Threshold plots                      *
+   // ************************************************************
+
+   for ( uint iE = 0; iE < EFiredAboveThreshold.size(); ++iE ){
+     
+     int     ttThresh    = ttEThreshold[iE];
+     TString ttThreshStr = Form( "%d", ttThresh );
+     int EFiredGTThresh  = EFiredAboveThreshold[iE];
+     int EFiredLEThresh  = EorHFired - EFiredGTThresh;
+
+     // Above threshold
+     hist2D["TTEFired_gt_" + ttThreshStr + "_vs_NVTX"]     ->Fill( NVTX, EFiredGTThresh );
+     hist1D["TTEFired_gt_" + ttThreshStr + "_vs_NVTX_prof"]->Fill( NVTX, EFiredGTThresh );
+     // Less than or equal to threshold
+     hist2D["TTEFired_le_" + ttThreshStr + "_vs_NVTX"]     ->Fill( NVTX, EFiredLEThresh );
+     hist1D["TTEFired_le_" + ttThreshStr + "_vs_NVTX_prof"]->Fill( NVTX, EFiredLEThresh );
+
+     
+   }
+   for ( uint iH = 0; iH < HFiredAboveThreshold.size(); ++iH ){
+     
+     int     ttThresh    = ttHThreshold[iH];
+     TString ttThreshStr = Form( "%d", ttThresh );
+     int HFiredGTThresh  = HFiredAboveThreshold[iH];
+     int HFiredLEThresh  = EorHFired - HFiredGTThresh;
+     
+     // Above threshold
+     hist2D["TTHFired_gt_" + ttThreshStr + "_vs_NVTX"]     ->Fill( NVTX, HFiredGTThresh );
+     hist1D["TTHFired_gt_" + ttThreshStr + "_vs_NVTX_prof"]->Fill( NVTX, HFiredGTThresh );
+     // Less than or equal to threshold
+     hist2D["TTHFired_le_" + ttThreshStr + "_vs_NVTX"]     ->Fill( NVTX, HFiredLEThresh );
+     hist1D["TTHFired_le_" + ttThreshStr + "_vs_NVTX_prof"]->Fill( NVTX, HFiredLEThresh );
+     
+   }
+   for ( uint iEH = 0; iEH < EplusHFiredAboveThreshold.size(); ++iEH ){
+     
+     int     ttThresh        = ttEplusHThreshold[iEH];
+     TString ttThreshStr     = Form( "%d", ttThresh );
+     int EplusHFiredGTThresh = EplusHFiredAboveThreshold[iEH];
+     int EplusHFiredLEThresh = EorHFired - EplusHFiredGTThresh;
+     
+     // Above threshold        
+     hist2D["TTEplusHFired_gt_" + ttThreshStr + "_vs_NVTX"]     ->Fill( NVTX, EplusHFiredGTThresh );
+     hist1D["TTEplusHFired_gt_" + ttThreshStr + "_vs_NVTX_prof"]->Fill( NVTX, EplusHFiredGTThresh );
+     // Less than or equal to threshold
+     hist2D["TTEplusHFired_le_" + ttThreshStr + "_vs_NVTX"]     ->Fill( NVTX, EplusHFiredLEThresh );
+     hist1D["TTEplusHFired_le_" + ttThreshStr + "_vs_NVTX_prof"]->Fill( NVTX, EplusHFiredLEThresh );
+     
+   }
+
+
+
+
+
+
+   // ************************************************************
+   // *                       Local plots                        *
+   // ************************************************************
+
+   for ( int iEtaBin = 0; iEtaBin < lBins; ++iEtaBin ){
+
+     // Get the iEta range the bin covers
+     int binLow  = (iEtaBin - lBins/2)*ttRingWidth;  
+     int binHigh = ((iEtaBin + 1) - lBins/2)*ttRingWidth;
+     if (binLow < 0){ binHigh--; }
+     else{ binLow++; }
+     TString binLowStr  = Form( "%d", binLow);
+     TString binHighStr = Form( "%d", binHigh);
+     TString iEtaBinStr = binLowStr + "to" + binHighStr;
+     TString iEtaBinLab = "i#eta #in [" + binLowStr + ", " + binHighStr + "]";
+
+
+     hist2D[ "TTLETotal_" + iEtaBinStr + "_vs_NVTX"]     ->Fill( NVTX, LETotal[iEtaBin] );
+     hist1D[ "TTLETotal_" + iEtaBinStr + "_vs_NVTX_prof"]->Fill( NVTX, LETotal[iEtaBin] );
+     hist2D[ "TTLHTotal_" + iEtaBinStr + "_vs_NVTX"]     ->Fill( NVTX, LHTotal[iEtaBin] );
+     hist1D[ "TTLHTotal_" + iEtaBinStr + "_vs_NVTX_prof"]->Fill( NVTX, LHTotal[iEtaBin] );
+
+     hist2D[ "TTLEMax_"   + iEtaBinStr + "_vs_NVTX"]     ->Fill( NVTX, LEMax[iEtaBin] );
+     hist1D[ "TTLEMax_"   + iEtaBinStr + "_vs_NVTX_prof"]->Fill( NVTX, LEMax[iEtaBin] );
+     hist2D[ "TTLHMax_"   + iEtaBinStr + "_vs_NVTX"]     ->Fill( NVTX, LHMax[iEtaBin] );
+     hist1D[ "TTLHMax_"   + iEtaBinStr + "_vs_NVTX_prof"]->Fill( NVTX, LHMax[iEtaBin] );
+
+     hist2D[ "TTLEMedian_" + iEtaBinStr + "_vs_NVTX"]     ->Fill( NVTX, LEMedian[iEtaBin] );
+     hist1D[ "TTLEMedian_" + iEtaBinStr + "_vs_NVTX_prof"]->Fill( NVTX, LEMedian[iEtaBin] );
+     hist2D[ "TTLHMedian_" + iEtaBinStr + "_vs_NVTX"]     ->Fill( NVTX, LHMedian[iEtaBin] );
+     hist1D[ "TTLHMedian_" + iEtaBinStr + "_vs_NVTX_prof"]->Fill( NVTX, LHMedian[iEtaBin] );
+     hist2D[ "TTLEplusHMedian_" + iEtaBinStr + "_vs_NVTX"]     ->Fill( NVTX, LEplusHMedian[iEtaBin] );
+     hist1D[ "TTLEplusHMedian_" + iEtaBinStr + "_vs_NVTX_prof"]->Fill( NVTX, LEplusHMedian[iEtaBin] );
+
+   }
+
+
+
+
+
+
+
+    // TODO: ADD THESE PARAMETERS
+//     double prePusHT_Tower, HT_Tower, MHT_Tower;
+//     *outputprePusHT_Tower = prePusHT_Tower;
+//     *outputHT_Tower       = HT_Tower;
+//     *outputMHT_Tower      = MHT_Tower;
+
+
+//     // Ht pre-PUS
+//     double prePusHT = 0;
+//     for (l1slhc::L1TowerJetCollection::const_iterator prePus_It = PrePUSubUpgrCenJet_Tower->begin(); prePus_It != PrePUSubUpgrCenJet_Tower->end(); ++prePus_It ){
+//       prePusHT += prePus_It->Pt();
+//     }
+
+//     *outputprePusHT_Tower = prePusHT;
+
+
+
+// #ifdef CURRENT
+//       SUBPRINT("CURRENT")
+
+//     double Curr_HT  = L1MHT_curr->begin()->etTotal();
+//     double Curr_MHT = L1MHT_curr->begin()->pt();
+//     hist1D["curr_HT"]   ->Fill(Curr_HT);
+//     hist1D["curr_MHT"]  ->Fill(Curr_MHT);
+
+//     // Compare current algorithm
+//     if (currentJets.size() != 0){
+      
+//       if ( offlineUncorrJets.size() != 0 ){ 
+// 	fillL1OfflineHistograms( currentJets, offlineUncorrJets, "curr", NVTX );
+//       }
+//       fillL1Histograms( currentJets, "curr", NVTX );
+
+//     }
+// #endif
+
+    
+
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+   QUIT("Successfully completed analysis of single event")
+ 
+}
+
+// ------------ method called once each job just before starting event loop  ------------
+void 
+CorrelationHist::beginJob()
+{
+}
+
+// ------------ method called once each job just after ending the event loop  ------------
+void 
+CorrelationHist::endJob() {
+}
+
+// ------------ method called when starting to processes a run  ------------
+void 
+CorrelationHist::beginRun(edm::Run&, edm::EventSetup const&)
+{
+}
+
+// ------------ method called when ending the processing of a run  ------------
+void 
+CorrelationHist::endRun(edm::Run&, edm::EventSetup const&)
+{
+}
+
+// ------------ method called when starting to processes a luminosity block  ------------
+void 
+CorrelationHist::beginLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&)
+{
+}
+
+// ------------ method called when ending the processing of a luminosity block  ------------
+void 
+CorrelationHist::endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&)
+{
+}
+
+// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+void
+CorrelationHist::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
+}
+
+
+
+//define this as a plug-in
+DEFINE_FWK_MODULE(CorrelationHist);
