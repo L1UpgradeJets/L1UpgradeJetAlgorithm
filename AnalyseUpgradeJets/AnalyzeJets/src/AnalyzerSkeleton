@@ -1,0 +1,219 @@
+#include <memory>
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TH3F.h"
+#include "TProfile.h"
+#include "TTree.h"
+#include "TCanvas.h"
+#include "TLatex.h"
+#include "TLorentzVector.h"
+#include "TMacro.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h" 
+#include "DataFormats/L1Trigger/interface/L1JetParticle.h"
+#include "DataFormats/L1Trigger/interface/L1JetParticleFwd.h"
+#include "SimDataFormats/SLHC/interface/L1CaloTower.h"
+#include "SimDataFormats/SLHC/interface/L1TowerJet.h"
+#include "SimDataFormats/SLHC/interface/L1TowerJetFwd.h"
+#include "DataFormats/L1Trigger/interface/L1EtMissParticle.h"
+#include "DataFormats/L1Trigger/interface/L1EtMissParticleFwd.h"
+#include "JetMETCorrections/Objects/interface/JetCorrector.h"
+#include "DataFormats/JetReco/interface/CaloJetCollection.h"
+#include "FWCore/Framework/interface/LuminosityBlock.h"
+
+#include "DataFormats/JetReco/interface/JetID.h" 
+#include "RecoJets/JetProducers/interface/JetIDHelper.h"
+#include "DataFormats/Common/interface/ValueMap.h"
+
+#include "SimDataFormats/SLHC/interface/EtaPhiContainer.h"
+#include "SLHCUpgradeSimulations/L1CaloTrigger/interface/TriggerTowerGeometry.h"
+//#include "AnalyseUpgradeJets/AnalyzeJets/src/JetMatch.h"
+
+#include <algorithm>  // for sorting
+
+using namespace l1slhc;
+using namespace edm;
+using namespace std;
+using namespace reco;
+
+
+
+
+#ifdef VERBOSE
+#    define PRINT(outputStr) std::cout << "\n************************************************************\n" << "Making: " << (outputStr) << "\n" << "******\
+******************************************************\n\n";
+#    define SUBPRINT(outputStr) std::cout << "\t" << outputStr << "\n";
+#    define QUIT(outputStr) std::cout << "\n\n\n" << outputStr << "\n\n\n"; exit(0);
+#else
+#    define PRINT(outputStr)
+#    define SUBPRINT(outputStr)
+#    define QUIT(outputStr)
+#endif
+
+
+
+
+
+
+
+
+
+
+
+// ========================================
+// class declaration
+// ========================================
+
+class L1RECOMatch : public edm::EDAnalyzer {
+
+public:
+  explicit L1RECOMatch(const edm::ParameterSet&);
+  ~L1RECOMatch();
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+
+private:
+  virtual void beginJob() ;
+  virtual void analyze(const edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
+
+  virtual void beginRun(edm::Run const&, edm::EventSetup const&);
+  virtual void endRun(edm::Run const&, edm::EventSetup const&);
+  virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+  virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+
+  //------------member functions---------------------
+  //  std::pair< double, int> Leading_Match(vector<TLorentzVector> offlineJets,vector<TLorentzVector> L1Jets );
+
+  // ----------member data ---------------------------
+  ParameterSet conf_;
+
+
+  Service<TFileService> fs;
+
+};
+
+
+
+
+
+L1RECOMatch::L1RECOMatch(const edm::ParameterSet& iConfig): conf_(iConfig){
+
+  // ****************************************
+  // *              Start job               *
+  // ****************************************
+  PRINT("Constructor")
+
+
+
+
+}
+
+
+
+L1RECOMatch::~L1RECOMatch()
+{
+}
+
+
+
+// ------------ method called once each job just before starting event loop  ------------
+void L1RECOMatch::beginJob(){
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+// **********************************************************************
+// *                              analyze()                             *
+// *                                                                    *
+// *                                                                    *
+// **********************************************************************
+
+
+void L1RECOMatch::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup){
+
+
+  bool evValid = true;
+
+  
+  std::cout << "Hello world!\n";
+
+
+  QUIT("Successfully completed analysis of single event")
+
+} // end analyser
+
+
+
+
+// ------------ method called once each job just after ending the event loop  ------------
+void L1RECOMatch::endJob(){
+
+
+
+}
+
+// ------------ method called when starting to processes a run  ------------
+void
+L1RECOMatch::beginRun(edm::Run const&, edm::EventSetup const&)
+{
+}
+
+// ------------ method called when ending the processing of a run  ------------
+void
+L1RECOMatch::endRun(edm::Run const&, edm::EventSetup const&)
+{
+}
+
+// ------------ method called when starting to processes a luminosity block  ------------
+void
+L1RECOMatch::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+{
+}
+
+// ------------ method called when ending the processing of a luminosity block  ------------
+void
+L1RECOMatch::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+{
+}
+
+// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+void
+L1RECOMatch::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
+}
+
+
+
+
+
+
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+//define this as a plug-in
+DEFINE_FWK_MODULE(L1RECOMatch);

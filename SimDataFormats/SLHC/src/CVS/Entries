@@ -1,0 +1,23 @@
+/DTSeededTracklet.cc/1.6/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/DTStubMatch.cc/1.6/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/DTStubMatchPt.cc/1.6/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/DTStubMatchPtAlgorithms.cc/1.2/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/DTStubMatchPtLinearFitAlgorithm.cc/1.2/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/DTStubMatchPtVariety.cc/1.2/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/DTStubMatchesCollection.cc/1.4/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/DTTSPhiTrigger.cc/1.6/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/DTUtils.cc/1.2/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/DTUtils.h/1.2/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/L1CaloCluster.cc/1.7/Fri May  4 17:21:25 2012//TL1CaloBranch
+/L1CaloJet.cc/1.4/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/L1CaloRegion.cc/1.2/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/L1CaloTower.cc/1.4/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/L1CaloTriggerSetupRcd.cc/1.3/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/LocalStub.cc/1.3/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/T_EventSetup_L1CaloTriggerSetup.cc/1.4/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/TrackTriggerHit.cc/1.3/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/TrackTriggerPrimitive.cc/1.3/Fri Feb 17 17:14:58 2012//TL1CaloBranch
+/classes.h/1.13/Thu Mar  1 09:47:51 2012//TL1CaloBranch
+/classes_def.xml/1.15/Thu Mar  1 09:47:52 2012//TL1CaloBranch
+/L1TowerJet.cc/1.4.2.5/Thu May 16 16:35:46 2013//TL1CaloBranch
+D
