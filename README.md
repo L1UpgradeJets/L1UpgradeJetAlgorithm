@@ -19,10 +19,10 @@ To checkout the latest <i>development</i> release:
 </code>
 
 
-Repositry contents
+Repository contents
 ------------------
 
-The repositry contains the following directories:
+The repository contains the following directories:
 
 <p>
   <b>AnalyseUpgradeJets/ </b>        - Contains jet analyser code<br>
