@@ -14,7 +14,7 @@ To checkout the latest <i>development</i> release:
   cmsrel CMSSW_6_2_2<br>
   cd CMSSW_6_2_2/src<br>
   cmsenv<br>
-  git clone -b developer-release-v01 git://github.com/MarkBaber/L1UpgradeJetAlgorithm.git .<br>
+  git clone git://github.com/L1UpgradeJets/L1UpgradeJetAlgorithm.git .<br>
   scram b -j8<br>
 </code>
 
