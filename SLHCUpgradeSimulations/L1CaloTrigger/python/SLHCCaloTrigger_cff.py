@@ -4,7 +4,7 @@ from SLHCUpgradeSimulations.L1CaloTrigger.SLHCCaloTrigger_cfi import *
 
 SLHCCaloTrigger  = cms.Sequence(#L1TestPatternCaloTowerProducer+
                                  L1CaloTowerProducer+
-                                 L1CaloTowerFastjetProducer+
+                                 #L1CaloTowerFastjetProducer+
 #                                L1RingSubtractionProducer+
                                  L1CaloRegionProducer+
                                  L1CaloClusterProducer+
