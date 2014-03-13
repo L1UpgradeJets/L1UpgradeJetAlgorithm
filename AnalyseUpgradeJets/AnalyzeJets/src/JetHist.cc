@@ -300,6 +300,7 @@ JetHist::JetHist(const edm::ParameterSet& iConfig): conf_(iConfig)
     0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0};
 
   jetList.push_back("PrePUS");      // PrePUS upgrade Jets
+  jetList.push_back("CalibPrePUS");      // PrePUS upgrade Jets
    jetList.push_back("Ak5");             // ak5 PUS calibrated Jets
   // ith Jet lists
   // ************************************************************
