@@ -724,7 +724,8 @@ int getCalibration(){
 
           // Get gaussian fit mean 
           response    = gausResFit->GetParameter( 1 );
-          responseErr = gausResFit->GetParameter( 2 );
+          //responseErr = gausResFit->GetParameter( 2 );
+          responseErr = gausResFit->GetParError( 1 );
         }	      
         std::cout << "Final fit: Response = " << response << " +/- " << responseErr << "\n";
 
@@ -805,7 +806,8 @@ int getCalibration(){
         if (gausPtFit){
           // Get gaussian fit mean
           l1Pt    = gausPtFit->GetParameter( 1 );
-          l1PtErr = gausPtFit->GetParameter( 2 );
+          //l1PtErr = gausPtFit->GetParameter( 2 );
+          l1PtErr = gausPtFit->GetParError( 1 );
         }
 
         std::cout << "Final fit: L1Pt = " << l1Pt << " +/- " << l1PtErr << "\n";
