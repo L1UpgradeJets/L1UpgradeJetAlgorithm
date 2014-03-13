@@ -1,3 +1,8 @@
+//
+//          MODIFIED BY A ELWOOD FOR THE PU140 MC SAMPLE
+//          
+//          INVERTED THE FIT FUNCTION, L1060 and L1379 correction -> 1.0/correction
+//
 // -*- C++ -*-
 //
 // Package:    JetCalibProducer
@@ -332,22 +337,22 @@ JetCalibProducer::JetCalibProducer(const edm::ParameterSet& iConfig): conf_(iCon
   // Recalibration - 05/02/14
 
   // L1 Pt threshold for high Pt LUT
-  LUTPtTransition = 45;
+  LUTPtTransition = 0;
 
   // PrePUS
-  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-05_SingleMu_12Dec_11x11_rev_5/Calibration_CalibPrePUS_ak5PUSLowPt.LUT",  recalibLowPt_PrePUS_ak5PUS.LUTArr );
-  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-05_SingleMu_12Dec_11x11_rev_5/Calibration_CalibPrePUS_ak5PUSHighPt.LUT", recalibHighPt_PrePUS_ak5PUS.LUTArr );
-  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-05_SingleMu_12Dec_11x11_rev_5/Calibration_CalibPrePUS_ak5PUSNVTXResponse.LUT", recalibNVTX_PrePUS_ak5PUS.LUTArr ); 
+//  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-05_SingleMu_12Dec_11x11_rev_5/Calibration_CalibPrePUS_ak5PUSLowPt.LUT",  recalibLowPt_PrePUS_ak5PUS.LUTArr );
+//  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-05_SingleMu_12Dec_11x11_rev_5/Calibration_CalibPrePUS_ak5PUSHighPt.LUT", recalibHighPt_PrePUS_ak5PUS.LUTArr );
+//  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-05_SingleMu_12Dec_11x11_rev_5/Calibration_CalibPrePUS_ak5PUSNVTXResponse.LUT", recalibNVTX_PrePUS_ak5PUS.LUTArr ); 
 
   // PUS
-  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-07_SingleMu_12Dec_11x11/Calibration_CalibPUS_ak5PUSLowPt.LUT",        recalibLowPt_PUS_ak5PUS.LUTArr );
-  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-07_SingleMu_12Dec_11x11/Calibration_CalibPUS_ak5PUSHighPt.LUT",       recalibHighPt_PUS_ak5PUS.LUTArr );
-  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-07_SingleMu_12Dec_11x11/Calibration_CalibPUS_ak5PUSNVTXResponse.LUT", recalibNVTX_PUS_ak5PUS.LUTArr ); 
+//  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-07_SingleMu_12Dec_11x11/Calibration_CalibPUS_ak5PUSLowPt.LUT",        recalibLowPt_PUS_ak5PUS.LUTArr );
+//  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-07_SingleMu_12Dec_11x11/Calibration_CalibPUS_ak5PUSHighPt.LUT",       recalibHighPt_PUS_ak5PUS.LUTArr );
+//  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-07_SingleMu_12Dec_11x11/Calibration_CalibPUS_ak5PUSNVTXResponse.LUT", recalibNVTX_PUS_ak5PUS.LUTArr ); 
 
   // LPUS
-  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-07_SingleMu_12Dec_11x11/Calibration_CalibLPUS_ak5PUSLowPt.LUT",        recalibLowPt_LPUS_ak5PUS.LUTArr );
-  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-07_SingleMu_12Dec_11x11/Calibration_CalibLPUS_ak5PUSHighPt.LUT",       recalibHighPt_LPUS_ak5PUS.LUTArr );
-  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-07_SingleMu_12Dec_11x11/Calibration_CalibLPUS_ak5PUSNVTXResponse.LUT", recalibNVTX_LPUS_ak5PUS.LUTArr ); 
+//  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-07_SingleMu_12Dec_11x11/Calibration_CalibLPUS_ak5PUSLowPt.LUT",        recalibLowPt_LPUS_ak5PUS.LUTArr );
+//  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-07_SingleMu_12Dec_11x11/Calibration_CalibLPUS_ak5PUSHighPt.LUT",       recalibHighPt_LPUS_ak5PUS.LUTArr );
+//  loadLUT( "/vols/cms04/mb1512/Batch/2014-02-07_SingleMu_12Dec_11x11/Calibration_CalibLPUS_ak5PUSNVTXResponse.LUT", recalibNVTX_LPUS_ak5PUS.LUTArr ); 
 
   // ************************************************************
   // *                        Calibration                       *
@@ -363,18 +368,18 @@ JetCalibProducer::JetCalibProducer(const edm::ParameterSet& iConfig): conf_(iCon
 
   // PrePUSak5PUS
   pTCalibration_PrePUS_ak5PUS = iConfig.getParameter< std::vector< double > >("pTCalibration_PrePUS_ak5PUS");            
-  pTCalibration_PrePUS_ak5PUSLt3 = iConfig.getParameter< std::vector< double > >("pTCalibration_PrePUS_ak5PUSLt3");            
-  pTCalibration_PrePUS_NVTXLt15  = iConfig.getParameter< std::vector< double > >("pTCalibration_PrePUS_ak5PUSNVTXLt15");            
-  pTCalibration_PrePUS_NVTXLt25  = iConfig.getParameter< std::vector< double > >("pTCalibration_PrePUS_ak5PUSNVTXLt25");            
-  pTCalibration_PrePUS_NVTXLt50  = iConfig.getParameter< std::vector< double > >("pTCalibration_PrePUS_ak5PUSNVTXLt50");            
+  //pTCalibration_PrePUS_ak5PUSLt3 = iConfig.getParameter< std::vector< double > >("pTCalibration_PrePUS_ak5PUSLt3");            
+  //pTCalibration_PrePUS_NVTXLt15  = iConfig.getParameter< std::vector< double > >("pTCalibration_PrePUS_ak5PUSNVTXLt15");            
+  //pTCalibration_PrePUS_NVTXLt25  = iConfig.getParameter< std::vector< double > >("pTCalibration_PrePUS_ak5PUSNVTXLt25");            
+  //pTCalibration_PrePUS_NVTXLt50  = iConfig.getParameter< std::vector< double > >("pTCalibration_PrePUS_ak5PUSNVTXLt50");            
   // PUSak5PrePUS 
-  pTCalibration_PUS_ak5PUS    = iConfig.getParameter< std::vector< double > >("pTCalibration_PUS_ak5PUS");            
+  //pTCalibration_PUS_ak5PUS    = iConfig.getParameter< std::vector< double > >("pTCalibration_PUS_ak5PUS");            
   // PUSak5PUS
-  pTCalibration_LPUS_ak5PUS   = iConfig.getParameter< std::vector< double > >("pTCalibration_LPUS_ak5PUS");            
+  //pTCalibration_LPUS_ak5PUS   = iConfig.getParameter< std::vector< double > >("pTCalibration_LPUS_ak5PUS");            
   // ak5PUSRaw
-  pTCalibration_ak5PUSRaw_ak5PUS = iConfig.getParameter< std::vector< double > >("pTCalibration_ak5PUSRaw_ak5PUS");
+  //pTCalibration_ak5PUSRaw_ak5PUS = iConfig.getParameter< std::vector< double > >("pTCalibration_ak5PUSRaw_ak5PUS");
 
-  pTCalibration_UncalibGCT_ak5PUS = iConfig.getParameter< std::vector< double > >("pTCalibration_UncalibGCT_ak5PUS");
+  //pTCalibration_UncalibGCT_ak5PUS = iConfig.getParameter< std::vector< double > >("pTCalibration_UncalibGCT_ak5PUS");
 
 
 //   iEtaPtCorrectionPrePUSak5PrePUS  = iConfig.getParameter< std::vector< double > >("pTCorrectionPrePUSak5PrePUS");
@@ -470,7 +475,7 @@ JetCalibProducer::JetCalibProducer(const edm::ParameterSet& iConfig): conf_(iCon
 //									 MAX_L1_PT,0,MAX_L1_PT, 57,-28.5,28.5);
 
 
-     printCalibrationFactors( "pTCalibration_ak5PUSRaw_ak5PUS", pTCalibration_ak5PUSRaw_ak5PUS, fitOrder, MAX_L1_PT, true );
+//     printCalibrationFactors( "pTCalibration_ak5PUSRaw_ak5PUS", pTCalibration_ak5PUSRaw_ak5PUS, fitOrder, MAX_L1_PT, true );
 
      printCalibrationFactors( "pTCalibration_PrePUS_ak5PUS",    pTCalibration_PrePUS_ak5PUS,    fitOrder, MAX_L1_PT, true );
 //      // |eta| < 3
@@ -482,14 +487,14 @@ JetCalibProducer::JetCalibProducer(const edm::ParameterSet& iConfig): conf_(iCon
 //      // 25 < NVTX < 50 
 //      printCalibrationFactors( "pTCalibration_PrePUS_NVTXLt50",  pTCalibration_PrePUS_NVTXLt50,  fitOrder, MAX_L1_PT, true );
      // PUS 
-     printCalibrationFactors( "pTCalibration_PUS_ak5PUS",       pTCalibration_PUS_ak5PUS,       fitOrder, MAX_L1_PT, true );
+//     printCalibrationFactors( "pTCalibration_PUS_ak5PUS",       pTCalibration_PUS_ak5PUS,       fitOrder, MAX_L1_PT, true );
      // LPUS 
-     printCalibrationFactors( "pTCalibration_LPUS_ak5PUS",      pTCalibration_LPUS_ak5PUS,      fitOrder, MAX_L1_PT, true );
+//     printCalibrationFactors( "pTCalibration_LPUS_ak5PUS",      pTCalibration_LPUS_ak5PUS,      fitOrder, MAX_L1_PT, true );
 
 
 
      // Uncalib GCT
-     printCalibrationFactors( "pTCalibration_UncalibGCT_ak5PUS",      pTCalibration_UncalibGCT_ak5PUS,      fitOrder, MAX_L1_PT, true );
+//     printCalibrationFactors( "pTCalibration_UncalibGCT_ak5PUS",      pTCalibration_UncalibGCT_ak5PUS,      fitOrder, MAX_L1_PT, true );
 
   
 }
@@ -581,12 +586,12 @@ JetCalibProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 //      evValid = false;
 //    }
 
-   edm::Handle<l1extra::L1JetParticleCollection> Ak5PUSRaw_L1Jet;
-   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("PUSRawAk5CaloJetL1Jet"), Ak5PUSRaw_L1Jet);
-   if(!Ak5PUSRaw_L1Jet.isValid()){
-     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("PUSRawAk5CaloJetL1Jet") << std::endl;
-     evValid = false;
-   }
+//   edm::Handle<l1extra::L1JetParticleCollection> Ak5PUSRaw_L1Jet;
+//   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("PUSRawAk5CaloJetL1Jet"), Ak5PUSRaw_L1Jet);
+//   if(!Ak5PUSRaw_L1Jet.isValid()){
+//     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("PUSRawAk5CaloJetL1Jet") << std::endl;
+//     evValid = false;
+//   }
 
 
    // ************************************************************
@@ -601,29 +606,29 @@ JetCalibProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      evValid = false;
    }
 
-   edm::Handle<l1extra::L1JetParticleCollection> UncalibJetPUS_L1Jet;
-   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("UncalibratedPUSL1Jet"), UncalibJetPUS_L1Jet);
-   if(!UncalibJetPUS_L1Jet.isValid()){
-     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("UncalibratedPUSL1Jet") << std::endl;
-     evValid = false;
-   }
+//   edm::Handle<l1extra::L1JetParticleCollection> UncalibJetPUS_L1Jet;
+//   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("UncalibratedPUSL1Jet"), UncalibJetPUS_L1Jet);
+//   if(!UncalibJetPUS_L1Jet.isValid()){
+//     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("UncalibratedPUSL1Jet") << std::endl;
+//     evValid = false;
+//   }
 
-   edm::Handle<l1extra::L1JetParticleCollection> UncalibJetLPUS_L1Jet;
-   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("UncalibratedLPUSL1Jet"), UncalibJetLPUS_L1Jet);
-   if(!UncalibJetLPUS_L1Jet.isValid()){
-     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("UncalibratedLPUSL1Jet") << std::endl;
-     evValid = false;
-   }
-
-
+//   edm::Handle<l1extra::L1JetParticleCollection> UncalibJetLPUS_L1Jet;
+//   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("UncalibratedLPUSL1Jet"), UncalibJetLPUS_L1Jet);
+//   if(!UncalibJetLPUS_L1Jet.isValid()){
+//     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("UncalibratedLPUSL1Jet") << std::endl;
+//     evValid = false;
+//   }
 
 
-   edm::Handle<l1extra::L1JetParticleCollection> UncalibJetGCT_L1Jet;
-   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("UncalibratedGCTL1Jet"), UncalibJetGCT_L1Jet);
-   if(!UncalibJetGCT_L1Jet.isValid()){
-     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("UncalibratedGCTL1Jet") << std::endl;
-     evValid = false;
-   }
+
+
+//   edm::Handle<l1extra::L1JetParticleCollection> UncalibJetGCT_L1Jet;
+//   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("UncalibratedGCTL1Jet"), UncalibJetGCT_L1Jet);
+//   if(!UncalibJetGCT_L1Jet.isValid()){
+//     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("UncalibratedGCTL1Jet") << std::endl;
+//     evValid = false;
+//   }
 
 
    // ************************************************************
@@ -733,50 +738,50 @@ JetCalibProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      // PrePUS
      calibrateJet( UncalibJetPrePUS_L1Jet, pTCalibration_PrePUS_ak5PUS, fitOrder,
 		   outputCalibTowerJetPrePUSak5PUS_L1Jet, 
-		   outputRecalibTowerJetPrePUSak5PUS_L1Jet, 
+  	   outputRecalibTowerJetPrePUSak5PUS_L1Jet, 
 		   outputNVTXRecalibTowerJetPrePUSak5PUS_L1Jet, 
 		   true,
-		   recalibLowPt_PrePUS_ak5PUS,
- 		   recalibHighPt_PrePUS_ak5PUS,
- 		   recalibNVTX_PrePUS_ak5PUS,
+		   emptyLUT,//recalibLowPt_PrePUS_ak5PUS,
+ 		   emptyLUT,//recalibHighPt_PrePUS_ak5PUS,
+ 		   emptyLUT,//recalibNVTX_PrePUS_ak5PUS,
 		   LUTPtTransition	   );
 
 
      // PUS
-     calibrateJet( UncalibJetPUS_L1Jet, pTCalibration_PUS_ak5PUS, fitOrder,
-		   outputCalibTowerJetPUSak5PUS_L1Jet, 
-		   outputRecalibTowerJetPUSak5PUS_L1Jet, 
-		   outputNVTXRecalibTowerJetPUSak5PUS_L1Jet, 
-		   true,
-		   recalibLowPt_PUS_ak5PUS,
-		   recalibHighPt_PUS_ak5PUS,
-		   emptyLUT,
-		   LUTPtTransition	   );
+//     calibrateJet( UncalibJetPUS_L1Jet, pTCalibration_PUS_ak5PUS, fitOrder,
+//		   outputCalibTowerJetPUSak5PUS_L1Jet, 
+//		   outputRecalibTowerJetPUSak5PUS_L1Jet, 
+//		   outputNVTXRecalibTowerJetPUSak5PUS_L1Jet, 
+//		   true,
+//		   recalibLowPt_PUS_ak5PUS,
+//		   recalibHighPt_PUS_ak5PUS,
+//		   emptyLUT,
+//		   LUTPtTransition	   );
 
 
      // LPUS
-     calibrateJet( UncalibJetLPUS_L1Jet, pTCalibration_LPUS_ak5PUS, fitOrder,
-		   outputCalibTowerJetLPUSak5PUS_L1Jet, 
-		   outputRecalibTowerJetLPUSak5PUS_L1Jet, 
-		   outputNVTXRecalibTowerJetLPUSak5PUS_L1Jet, 
-		   true,
-		   recalibLowPt_LPUS_ak5PUS,
-		   recalibHighPt_LPUS_ak5PUS,
-		   emptyLUT,
-		   LUTPtTransition	   );
+//     calibrateJet( UncalibJetLPUS_L1Jet, pTCalibration_LPUS_ak5PUS, fitOrder,
+//		   outputCalibTowerJetLPUSak5PUS_L1Jet, 
+//		   outputRecalibTowerJetLPUSak5PUS_L1Jet, 
+//		   outputNVTXRecalibTowerJetLPUSak5PUS_L1Jet, 
+//		   true,
+//		   recalibLowPt_LPUS_ak5PUS,
+//		   recalibHighPt_LPUS_ak5PUS,
+//		   emptyLUT,
+//		   LUTPtTransition	   );
 
 
 
      // Uncalib GCT
-     calibrateJet( UncalibJetGCT_L1Jet, pTCalibration_UncalibGCT_ak5PUS, fitOrder,
-                   outputCalibGCT_L1Jet,
-                   outputRecalibGCT_L1Jet,
-                   outputNVTXRecalibGCT_L1Jet,
-                   true,
-                   emptyLUT,
-                   emptyLUT,
-                   emptyLUT,
-                   LUTPtTransition );
+//     calibrateJet( UncalibJetGCT_L1Jet, pTCalibration_UncalibGCT_ak5PUS, fitOrder,
+//                   outputCalibGCT_L1Jet,
+//                   outputRecalibGCT_L1Jet,
+//                   outputNVTXRecalibGCT_L1Jet,
+//                   true,
+//                   emptyLUT,
+//                   emptyLUT,
+//                   emptyLUT,
+//                   LUTPtTransition );
 
 
 
@@ -1052,7 +1057,7 @@ JetCalibProducer::calibrateJet( edm::Handle<l1slhc::L1TowerJetCollection> const&
 	 double term2 = p3 * exp( -p4*((logPt - p5)*(logPt - p5)) );
 
 	 // Calculate the corrected Pt 
-	 double correction = (p0 + term1 + term2);
+	 double correction = 1.0/(p0 + term1 + term2);
 	 correctedPt    = correction*unCorrectedPt;
 	 
 
@@ -1371,7 +1376,7 @@ JetCalibProducer::calibrateJet( edm::Handle<l1extra::L1JetParticleCollection> Un
 	 double term2 = p3 * exp( -p4*((logPt - p5)*(logPt - p5)) );
 
 	 // Calculate the corrected Pt 
-	 double correction = (p0 + term1 + term2);
+	 double correction = 1.0/(p0 + term1 + term2);
 	 correctedPt    = correction*unCorrectedPt;
 
 	}

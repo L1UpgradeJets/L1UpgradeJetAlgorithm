@@ -2,7 +2,9 @@ import FWCore.ParameterSet.Config as cms
 
 from lutables_cfi import *
 
-gFileName = cms.string('OutputJets.root')
+import QcdAnalyzeJetsInput 
+
+gFileName = cms.string('OutputJetsQcdCalibratedNoThreshold.root')
 #cms.options.SkipEvent = cms.untracked.vstring('ProductNotFound')
 # **************************************************
 # *                  Thresholds                    *
@@ -25,6 +27,10 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 # Stop stupid output after every event
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
+process.MessageLogger = cms.Service("MessageLogger",
+    threshold = cms.untracked.string('ERROR') 
+    )
+
 #process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.options = cms.untracked.PSet( 
@@ -34,7 +40,8 @@ process.options = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
                             #fileNames = cms.untracked.vstring( 'root://gfe02.grid.hep.ph.ic.ac.uk/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/mbaber/SingleMu_20Feb_11x11/JetCollections_224_1_l1V.root'),
-                            fileNames = cms.untracked.vstring('file:JetCollections.root'),
+                            #fileNames = QcdAnalyzeJetsInput.readFiles,
+                            fileNames = cms.untracked.vstring('file:JetCollectionsQcd.root'),
    skipEvents = cms.untracked.uint32(0)
 )
 process.TFileService = cms.Service("TFileService",
@@ -42,6 +49,28 @@ fileName = gFileName,
 # Dramatic decrease the time it takes to close the ROOT file
 closeFileFast = cms.untracked.bool(True)                          
 )
+
+# MY Calibration LUT
+
+# Put your own LUT in it's place based on your own calibration
+
+myCalibration_PrePUS_ak5PUSLUT = cms.vdouble()
+myCalibration_PrePUS_ak5PUSLUT.extend([
+  0.717833, 9.995047,  -0.999659,  5.410312,  1.520436, 3.081143,
+  0.722580, 9.995841, 4.550480,  9.997039, 4.065584, 3.287689,
+  0.854021, 2.804733, 9.999661,  0.388765, 9.994117, 3.911864,
+  0.833522, 1.542378, 9.999956,  0.700930, 9.998073, 3.802776,
+  0.875568, 0.002377, 9.999967, 3.821998,  2.856937, 3.048047,
+  0.882316, 0.000121, 9.999996, 7.553927,  4.307671, 3.153237,
+  0.883972, 0.000296, 9.999991, 3.810429, 2.416949,  2.991558,
+  0.883972, 0.000296, 9.999991, 3.810429, 2.416949,  2.991558,
+  0.882316, 0.000121, 9.999996, 7.553927,  4.307671, 3.153237,
+  0.875568, 0.002377, 9.999967, 3.821998,  2.856937, 3.048047,
+  0.833522, 1.542378, 9.999956,  0.700930, 9.998073, 3.802776,
+  0.854021, 2.804733, 9.999661,  0.388765, 9.994117, 3.911864,
+  0.722580, 9.995841, 4.550480,  9.997039, 4.065584, 3.287689,
+  0.717833, 9.995047,  -0.999659,  5.410312,  1.520436, 3.081143,
+])
 
 process.EventProducer = cms.EDProducer('EventProducer',
 
@@ -85,10 +114,12 @@ process.JetProducer = cms.EDProducer('JetProducer',
                                      # ******************************
                                      
                                      minL1JetPt          = cms.double(1),
-                                     maxL1JetEta         = cms.double(1.6),
+                                     maxL1JetEta         = cms.double(2.5),
                                      minRECOJetPt        = cms.double(1),
-                                     maxRECOJetEta       = cms.double(1.6),
+                                     maxRECOJetEta       = cms.double(2.5),
 
+                                     # Fold eta to increase stats?
+                                     FoldEta = cms.bool( False ),
 
                                      # ******************************
                                      # *    TowerJet collections    *
@@ -128,6 +159,84 @@ process.JetProducer = cms.EDProducer('JetProducer',
                                      #RecoVertices = cms.InputTag("offlinePrimaryVertices"),
 
 )
+
+#------ Produce the calibrated
+process.JetCalibProducer = cms.EDProducer('JetCalibProducer',
+
+                                  #REGION LEVEL SEGMENTATION
+                                  EtaRegionSlice       = cms.vdouble( -3.0, -2.172, -1.74, -1.392, -1.044, -0.695, -0.348, 0.0,
+                                                                      0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0),
+
+                                  # SUB-REGION LEVEL !!!!
+#                                 EtaRegionSlice       = cms.vdouble( -3.0, -2.5, -2.172, -1.93, -1.74, -1.566, -1.392, -1.218,
+#                                                                               -1.044, -0.87, -0.695, -0.522, -0.348, -0.174,
+#                                                                               0.0,
+#                                                                               0.174, 0.348, 0.522, 0.695, 0.87, 1.044,
+#                                                                               1.218, 1.392, 1.566, 1.74, 1.93, 2.172, 2.5, 3.0),
+                                  #EtaRegionSlice       = cms.vdouble(-3.0,-2.65,-2.5,-2.322,-2.172,-2.043,-1.93,-1.83,-1.74,-1.653,
+                                  #                                  -1.566,-1.4790,-1.3920,-1.3050,-1.2180,-1.1310,-1.0440,-0.9570,
+                                  #                                  -0.8700,-0.7830,-0.6950,-0.6090,-0.5220,-0.4350,-0.3480,-0.2610,
+                                  #                                  -0.1740,-0.0870,
+                                  #                                  0.,
+                                  #                                  0.0870,0.1740,
+                                  #                                  0.2610,0.3480,0.4350,0.5220,0.6090,0.6950,0.7830,0.8700,
+                                  #                                  0.9570,1.0440,1.1310,1.2180,1.3050,1.3920,1.4790,1.566,
+                                  #                                  1.653,1.74,1.83,1.93,2.043,2.172,2.322,2.5,2.65,3.0),
+
+                                                                                    
+                                          
+                                          NumPrimaryVertices      = cms.InputTag("JetProducer:NVTX"),
+                                          
+
+                                          UncalibratedPrePUSL1Jet       = cms.InputTag("JetProducer:PrePUSTowerJetL1Jet"), #L1 Jet
+                                          #UncalibratedPrePUSTowerJet    = cms.InputTag("L1TowerJetPUSubtractedProducer:PrePUSubCenJets"),
+                                          #UncalibratedPUSTowerJet       = cms.InputTag("L1TowerJetPUSubtractedProducer:PUSubCenJets"), 
+                                          #UncalibratedPUSL1Jet          = cms.InputTag("JetProducer:PUSTowerJetL1Jet"),
+                                          #UncalibratedLPUSTowerJet      = cms.InputTag("L1TowerJetPUSubtractedProducer:LocalPUSubCenJets"), 
+                                          #UncalibratedLPUSL1Jet         = cms.InputTag("JetProducer:LPUSTowerJetL1Jet"),
+                                         
+#                                          PUSPreCalibCaloJets       = cms.InputTag("PUsubAK5RawCaloJetProducer"),
+                                          #PUSRawAk5CaloJetL1Jet  = cms.InputTag("JetProducer:PUSRawAk5CaloJetL1Jet"),
+
+                                          #UncalibratedGCTL1Jet           = cms.InputTag("JetProducer:CurrentUncalibJetL1Jet"),
+
+
+                                          # *****************************************************************************************
+                                          # *                                   New 11x11 calibration                               *
+                                          # *****************************************************************************************
+
+                                           # ************************************************************
+                                           # iEta binned calibration factors
+                                           # ************************************************************
+
+                                           # L1 pT calibration threshold, minimum L1 jet pT to apply correction
+#                                           pTCalibrationThreshold  = cms.double( 20 ),
+#                                          pTCalibrationThreshold  = cms.double( 15 ),
+                                          pTCalibrationThreshold  = cms.double( 0 ),
+                                     
+                                           # iEta bin width to sample to obtain calibration factors
+                                           iEtaCalibrationBinWidth = cms.double( 1 ),
+
+                                           # Number of fit parameters
+                                           nParams = cms.int32(6),
+
+
+                                          pTCalibration_PrePUS_ak5PUS         = myCalibration_PrePUS_ak5PUSLUT,
+                                          #pTCalibration_PrePUS_ak5PUSLt3      = gCalibration_PrePUS_ak5PUSLt3LUT,
+                                          #pTCalibration_PrePUS_ak5PUSNVTXLt15 = gCalibration_PrePUS_ak5PUSNVTXLt15LUT,
+                                          #pTCalibration_PrePUS_ak5PUSNVTXLt25 = gCalibration_PrePUS_ak5PUSNVTXLt25LUT,
+                                          #pTCalibration_PrePUS_ak5PUSNVTXLt50 = gCalibration_PrePUS_ak5PUSNVTXLt50LUT,
+                                          #pTCalibration_PUS_ak5PUS            = gCalibration_PUS_ak5PUSLUT,
+                                          #pTCalibration_LPUS_ak5PUS           = gCalibration_LPUS_ak5PUSLUT,
+                                          #pTCalibration_ak5PUSRaw_ak5PUS      = gCalibration_ak5PUSRaw_ak5PUSLUT,
+
+
+                                          #pTCalibration_UncalibGCT_ak5PUS     = gCalibration_UncalibGCT_ak5PUSLUT,
+
+                                          
+                                     
+)
+
 
 # Jet histograms
 process.JetHist = cms.EDAnalyzer('JetHist',
@@ -239,8 +348,8 @@ process.JetHist = cms.EDAnalyzer('JetHist',
                                  # Specify the PT thresholds
                                  PTThreshold          = cms.vdouble( 0., 10., 20., 30., 40., 50., 60. ),
                                  # Eta region-level segmentation
-#                                  EtaRegionSlice       = cms.vdouble( -3.0, -2.172, -1.74, -1.392, -1.044, -0.695, -0.348, 0.0,
-#                                                                      0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0),
+                                  EtaRegionSlice       = cms.vdouble( -3.0, -2.172, -1.74, -1.392, -1.044, -0.695, -0.348, 0.0,
+                                                                      0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0),
 
                                  # SUB-REGION LEVEL !!!!
 #                                  EtaRegionSlice       = cms.vdouble( -3.0, -2.5, -2.172, -1.93, -1.74, -1.566, -1.392, -1.218,
@@ -250,19 +359,20 @@ process.JetHist = cms.EDAnalyzer('JetHist',
 #                                                                      1.218, 1.392, 1.566, 1.74, 1.93, 2.172, 2.5, 3.0),
 
                                  # SUB-REGION LEVEL !!!!
-                                 EtaRegionSlice       = cms.vdouble(-3.0,-2.65,-2.5,-2.322,-2.172,-2.043,-1.93,-1.83,-1.74,-1.653,
-                                                                    -1.566,-1.4790,-1.3920,-1.3050,-1.2180,-1.1310,-1.0440,-0.9570,
-                                                                    -0.8700,-0.7830,-0.6950,-0.6090,-0.5220,-0.4350,-0.3480,-0.2610,
-                                                                    -0.1740,-0.0870,
-                                                                    0.,
-                                                                    0.0870,0.1740,
-                                                                    0.2610,0.3480,0.4350,0.5220,0.6090,0.6950,0.7830,0.8700,
-                                                                    0.9570,1.0440,1.1310,1.2180,1.3050,1.3920,1.4790,1.566,
-                                                                    1.653,1.74,1.83,1.93,2.043,2.172,2.322,2.5,2.65,3.0),
-      
-                                 # *************************************
+#                                 EtaRegionSlice       = cms.vdouble(-3.0,-2.65,-2.5,-2.322,-2.172,-2.043,-1.93,-1.83,-1.74,-1.653,
+#                                                                    -1.566,-1.4790,-1.3920,-1.3050,-1.2180,-1.1310,-1.0440,-0.9570,
+#                                                                    -0.8700,-0.7830,-0.6950,-0.6090,-0.5220,-0.4350,-0.3480,-0.2610,
+#                                                                    -0.1740,-0.0870,
+#                                                                    0.,
+#                                                                    0.0870,0.1740,
+#                                                                    0.2610,0.3480,0.4350,0.5220,0.6090,0.6950,0.7830,0.8700,
+#                                                                    0.9570,1.0440,1.1310,1.2180,1.3050,1.3920,1.4790,1.566,
+#                                                                    1.653,1.74,1.83,1.93,2.043,2.172,2.322,2.5,2.65,3.0),
+#      
+#                                 # *************************************
                                  # *    Online-offline jet matching    *
                                  # *************************************
+
 
                                  # Matching parameters
                                  # -------------------
@@ -272,6 +382,8 @@ process.JetHist = cms.EDAnalyzer('JetHist',
                                  # iEta bin width to sample to obtain calibration factors
                                  iEtaCalibrationBinWidth = cms.double( 1 ),
 
+                                 # The rank of jets to compare for calibration 
+                                 JetRankComparison = cms.int32( 1 ),
 
                                  # *************************************
                                  # *        Turn on parameters         *
@@ -280,7 +392,7 @@ process.JetHist = cms.EDAnalyzer('JetHist',
 
                                  # Ak5 cleaning cuts (Loose)
                                  # ------------------------------------------------------------
-                                 MaxEta         = cms.double(1.6),
+                                 MaxEta         = cms.double(2.5),
 #                                 MinPt          = cms.double(30),
                                  MinPt          = cms.double(1),
 
@@ -300,6 +412,7 @@ process.JetHist = cms.EDAnalyzer('JetHist',
 
 process.p = cms.Path(
                       process.JetProducer
+                      +process.JetCalibProducer
                       +process.JetHist
                      )
 

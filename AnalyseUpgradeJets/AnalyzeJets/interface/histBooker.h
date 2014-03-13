@@ -50,7 +50,7 @@ struct histParam{
    const histParam pL1PT(200,   -0.5, 199.5);
    const histParam pOffPT(200,  -0.5, 199.5);
    const histParam pL1PTLarge(600,   -0.5, 599.5);
-   const histParam pOffPTLarge(440,  -0.5, 439.5);
+   const histParam pOffPTLarge(600,  -0.5, 599.5);
    const histParam pOffEta(61, -3.05, 3.05);
    const histParam pOffPhi(63, -3.15, 3.15);
   

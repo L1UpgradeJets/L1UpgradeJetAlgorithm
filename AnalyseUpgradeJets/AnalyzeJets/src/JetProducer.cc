@@ -144,6 +144,7 @@ class JetProducer : public edm::EDProducer {
       double minRECOJetPt;
       double maxRECOJetEta;
 
+      bool foldEta;
   
   // Eta region-level segmentation                                                                                                                        
   std::vector <double> RCTEtaRegions;
@@ -234,6 +235,7 @@ JetProducer::JetProducer(const edm::ParameterSet& iConfig): conf_(iConfig)
   minRECOJetPt  = iConfig.getParameter<double> ("minRECOJetPt");
   maxRECOJetEta = iConfig.getParameter<double> ("maxRECOJetEta");
 
+  foldEta = iConfig.getParameter<bool> ("FoldEta");
 
 
 
@@ -551,7 +553,9 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      //     double scaleFactor = 0.5;
        // </TEMP>
 
-     tempJet.SetCoordinates( Tower_It->p4().Pt(), Tower_It->p4().eta(), Tower_It->p4().phi(), Tower_It->p4().M() );
+     double tempEta = Tower_It->p4().eta();
+     if(foldEta) tempEta = fabs(tempEta);
+     tempJet.SetCoordinates( Tower_It->p4().Pt(), tempEta, Tower_It->p4().phi(), Tower_It->p4().M() );
 
 
 
@@ -801,7 +805,9 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    for (reco::GenJetCollection::const_iterator PrePUSRawak5_It = PrePUSRawAk5Jets->begin(); PrePUSRawak5_It != PrePUSRawAk5Jets->end(); ++PrePUSRawak5_It ){
 
      math::PtEtaPhiMLorentzVector tempJet;
-     tempJet.SetCoordinates( PrePUSRawak5_It->p4().Pt(), PrePUSRawak5_It->p4().eta(), PrePUSRawak5_It->p4().phi(), PrePUSRawak5_It->p4().M() );
+     double tempEta=PrePUSRawak5_It->p4().eta();
+     if(foldEta) tempEta=fabs(tempEta);
+     tempJet.SetCoordinates( PrePUSRawak5_It->p4().Pt(), tempEta, PrePUSRawak5_It->p4().phi(), PrePUSRawak5_It->p4().M() );
      
      // Only retain jet if it passes jet cleaning
      if ( !(cleanRECOJet(tempJet)) ) continue;

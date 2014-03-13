@@ -207,6 +207,8 @@ class JetHist : public edm::EDAnalyzer {
 
       // Width of iEta bins to sample to obtain pT corrections
       double iEtaCalibBinWidth;
+      
+  int jetRankComparison;
 
   // NVTX binning
   std::vector<int> nvtxBins;
@@ -276,6 +278,8 @@ JetHist::JetHist(const edm::ParameterSet& iConfig): conf_(iConfig)
 
   iEtaCalibBinWidth = iConfig.getParameter< double >("iEtaCalibrationBinWidth");
 
+  //Rank of jets to compare
+  jetRankComparison = iConfig.getParameter< int >("JetRankComparison");
 
   // ************************************************************
   // *                   Turn on configuration                  *
@@ -328,6 +332,17 @@ JetHist::JetHist(const edm::ParameterSet& iConfig): conf_(iConfig)
   // PrePUS-ak5PUS
   calibPrefix.push_back("Calibration_PrePUS_ak5PUS");
   calibLabel.push_back("TowerJet PrePUS, Ak5 PUS");
+  calibPrefix.push_back("Calibration_PrePUS_ak5PUS_3Jets");
+  calibLabel.push_back("TowerJet PrePUS leading three jets, Ak5 PUS");
+  calibPrefix.push_back("Calibration_PrePUS_ak5PUS_AllJets");
+  calibLabel.push_back("TowerJet PrePUS, Ak5 PUS_AllJets");
+
+  calibPrefix.push_back("Calibration_CalibPrePUS_ak5PUS");
+  calibLabel.push_back("TowerJet CalibPrePUS, Ak5 PUS");
+  calibPrefix.push_back("Calibration_CalibPrePUS_ak5PUS_3Jets");
+  calibLabel.push_back("TowerJet CalibPrePUS leading three jets, Ak5 PUS");
+  calibPrefix.push_back("Calibration_CalibPrePUS_ak5PUS_AllJets");
+  calibLabel.push_back("TowerJet CalibPrePUS, Ak5 PUS_AllJets");
   //calibPrefix.push_back("Calibration_CalibPrePUS_ak5PUS");
   //calibLabel.push_back("TowerJet CalibPrePUS, Ak5 PUS");
   //calibPrefix.push_back("Calibration_Curr_ak5PUS");
@@ -366,8 +381,8 @@ JetHist::JetHist(const edm::ParameterSet& iConfig): conf_(iConfig)
   matchPrefix.push_back("PrePUS_ak5PUS");
   matchLabel.push_back("TowerJet PrePUS, Ak5 PUS");
 
-  //matchPrefix.push_back("CalibPrePUS_ak5PUS");
-  //matchLabel.push_back("TowerJet CalibPrePUS, Ak5 PUS");
+  matchPrefix.push_back("CalibPrePUS_ak5PUS");
+  matchLabel.push_back("TowerJet CalibPrePUS, Ak5 PUS");
 
 
 
@@ -508,7 +523,7 @@ JetHist::JetHist(const edm::ParameterSet& iConfig): conf_(iConfig)
     booker.book2DTProf( matchPre + "_DeltaPT_vs_OffPT"  , matchSubDir, "#DeltaP_{T} vs Offline P_{T};Offline p_{T} (GeV);#DeltaP_{T} (GeV)", pOffPT, pDeltaPT); 
 
     booker.book1D( matchPre + "_JetResponse",  matchSubDir, "Jet response;P_{T}^{L1}/P_{T}^{RECO};Entries", pResponse);
-    booker.book2DTProf( matchPre + "_JetResponse_vs_OffPT",  matchSubDir, "Jet response vs Offline p_{T};Offline p_{T} (GeV);P_{T}^{L1}/P_{T}^{RECO}", pOffPT, pResponse);
+    booker.book2DTProf( matchPre + "_JetResponse_vs_OffPT",  matchSubDir, "Jet response vs Offline p_{T};Offline p_{T} (GeV);P_{T}^{L1}/P_{T}^{RECO}", pOffPTLarge, pResponse);
     booker.book2DTProf( matchPre + "_JetResponse_vs_L1PT",  matchSubDir, "Jet response vs L1 p_{T};L1 p_{T} (GeV);P_{T}^{L1}/P_{T}^{RECO}", pOffPT, pResponse);
 
     //    booker.book2DTProf( matchPre + "_JetResponse_vs_iEta",  matchSubDir, "Jet response vs i#eta;i#eta;P_{T}^{L1}/P_{T}^{RECO}", piEta, pResponse);
@@ -539,7 +554,7 @@ JetHist::JetHist(const edm::ParameterSet& iConfig): conf_(iConfig)
       TString EtaStr = "Eta_" + EtaLowStr + "_to_" + EtaHighStr; 
       TFileDirectory EtaSubDir = EtaDir.mkdir( EtaStr.Data() );
 
-	booker.book2DTProf( matchPre + "_L1PT_vs_OffPT_"     + EtaStr, EtaSubDir, "L1 P_{T} vs Offline P_{T} (" + EtaStr + ");Offline p_{T} (GeV);L1 P_{T} (GeV)", 										 pOffPT, pL1PT);
+	booker.book2DTProf( matchPre + "_L1PT_vs_OffPT_"     + EtaStr, EtaSubDir, "L1 P_{T} vs Offline P_{T} (" + EtaStr + ");Offline p_{T} (GeV);L1 P_{T} (GeV)", 										 pOffPTLarge, pL1PTLarge);
 	booker.book2DTProf( matchPre + "_OffPT_vs_L1PT_" + EtaStr, EtaSubDir, "Offline P_{T} vs L1 P_{T} (" + EtaStr + 
 			    ");L1 P_{T} (GeV);Offline p_{T} (GeV)", pL1PTLarge, pOffPTLarge);
 
@@ -552,7 +567,7 @@ JetHist::JetHist(const edm::ParameterSet& iConfig): conf_(iConfig)
 	booker.book2DTProf( matchPre + "_DeltaPT_vs_OffPT_"  + EtaStr, EtaSubDir, "#DeltaP_{T} vs Offline P_{T} (" + EtaStr + ");Offline p_{T} (GeV);#DeltaP_{T} (GeV)", 
 			    pOffPT, pDeltaPT); 
 	booker.book1D( matchPre + "_JetResponse_" + EtaStr,  EtaSubDir, "Jet response;P_{T}^{L1}/P_{T}^{RECO};Entries", pResponse);
-	booker.book2DTProf( matchPre + "_JetResponse_vs_OffPT_" + EtaStr,  EtaSubDir, "Jet response vs Offline P_{T};Offline p_{T} (GeV);P_{T}^{L1}/P_{T}^{RECO}", pOffPT, pResponse);
+	booker.book2DTProf( matchPre + "_JetResponse_vs_OffPT_" + EtaStr,  EtaSubDir, "Jet response vs Offline P_{T};Offline p_{T} (GeV);P_{T}^{L1}/P_{T}^{RECO}", pOffPTLarge, pResponse);
 
 
 	// Recalib plots
@@ -976,6 +991,12 @@ JetHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("PrePUSTowerJetL1Jet") << std::endl;
   }
 
+  edm::Handle<l1extra::L1JetParticleCollection> CalibPrePUS_L1Jet;
+  iEvent.getByLabel(conf_.getParameter<edm::InputTag>("CalibratedPrePUSak5PUSTowerJetL1Jet"), CalibPrePUS_L1Jet); 
+  if(!CalibPrePUS_L1Jet.isValid()){
+    evValid = false;   
+    edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("CalibratedPrePUSak5PUSTowerJetL1Jet") << std::endl;
+  }
 
   // ************************************************************
   // *                        RECO(Gen) Jets                         *
@@ -1082,8 +1103,13 @@ JetHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       // --------------------------------------------------
 
       // PrePUS-ak5PUS
-      calibrateL1RECO(  PrePUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_PrePUS_ak5PUS",            1, 1, 2.5);
+      calibrateL1RECO(  PrePUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_PrePUS_ak5PUS",            1, jetRankComparison, 2.5);
+      calibrateL1RECO(  PrePUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_PrePUS_ak5PUS_3Jets",            1, 3, 2.5);
+      calibrateL1RECO(  PrePUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_PrePUS_ak5PUS_AllJets",            1, 999, 2.5);
 
+      calibrateL1RECO(  CalibPrePUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibPrePUS_ak5PUS",            1, jetRankComparison, 2.5);
+      calibrateL1RECO(  CalibPrePUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibPrePUS_ak5PUS_3Jets",            1, 3, 2.5);
+      calibrateL1RECO(  CalibPrePUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibPrePUS_ak5PUS_AllJets",            1, 999, 2.5);
 
 #endif
 
@@ -1119,6 +1145,7 @@ JetHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
       // PrePUS-ak5PUS
       benchmarkJets(  PrePUS_L1Jet,                 Ak5PUS_L1Jet, "PrePUS_ak5PUS",            1, 1, 99, 2.5, 1000);
+      benchmarkJets( CalibPrePUS_L1Jet, Ak5PUS_L1Jet, "CalibPrePUS_ak5PUS", 1,1,99,2.5,1000);
 
 
 //#endif
