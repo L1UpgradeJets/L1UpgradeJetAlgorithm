@@ -191,17 +191,30 @@ L1TowerJetPUSubtractedProducer =  cms.EDProducer("L1TowerJetPUSubtractedProducer
 )
 
 L1CalibFilterTowerJetProducer = cms.EDProducer("L1CalibFilterTowerJetProducer",
-    inMVA_weights_file         = cms.FileInPath('SLHCUpgradeSimulations/L1CaloTrigger/data/TMVARegression_BDT.weights.xml'),
-    PUSubtractedCentralJets    = cms.InputTag("L1TowerJetPUSubtractedProducer","PUSubCenJets"),
-    PrePUSubtractedCentralJets = cms.InputTag("L1TowerJetPUSubtractedProducer","PrePUSubCenJets"),
-                                               
-    # Energy (GeV) threshold of jets to be used in the calculation of Ht and mHt                                               
-    JetPtThreshold          = cms.double(15),
-    # Determine whether to calibrate jet energies to offline energies
-    UseJetPtCalibration     = cms.bool(False),
-#    UseJetPtCalibration     = cms.bool(True),
 
+ # Energy (GeV) threshold of jets to be used in the calculation jet energy sums
+ EnergySumsJetPtThreshold          = cms.double(15),
 
+ # Calibration parameters
+ # ------------------------------
+ 
+ # Input uncalibrated jet collection
+ UncalibratedTowerJets = cms.InputTag("L1TowerJetPUSubtractedProducer","PrePUSubCenJets"),
+ 
+ # L1 pT calibration threshold, minimum L1 jet pT (GeV) to apply correction
+ pTCalibrationThreshold = cms.double( 0 ),
+ 
+ 
+ # Calibration eta-binning
+ EtaRegionSlice = cms.vdouble( -3.0, -2.172, -1.74, -1.392, -1.044, -0.695, -0.348, 0.0,
+ 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0),
+ 
+ # Number of calibration parameters used in LUT
+ CalibrationParameters = cms.uint32( 6 ),
+ 
+ # Location of LUT
+ CalibrationLUTFile = cms.FileInPath('SLHCUpgradeSimulations/L1CaloTrigger/data/pu140.LUT'),
+ 
                                                
 )
 
