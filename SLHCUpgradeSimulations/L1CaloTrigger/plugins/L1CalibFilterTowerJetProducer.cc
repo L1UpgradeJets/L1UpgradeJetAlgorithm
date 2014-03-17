@@ -295,8 +295,14 @@ L1CalibFilterTowerJetProducer::calibrateJetCollection( edm::Handle<L1TowerJetCol
  
        // Jet pT threshold for calibration, only calibrate above threshold
        if ( uncalibJet.p4().pt() < pTCalibrationThreshold ){
+
 	 // Store un-calibrated L1Jet 
-	 //	 unsortedCalibratedL1Jets.push_back( uncalibJet );
+	 // ------------------------------------------------------------                                                                                        
+	 // Create un-sorted calibrated L1Jet 
+	 math::PtEtaPhiMLorentzVector tempJet;
+	 tempJet.SetCoordinates( uncalibJet.p4().pt(), uncalibJet.p4().eta(), uncalibJet.p4().phi(), uncalibJet.p4().M() );
+	 unsortedCalibratedL1Jets.push_back( l1extra::L1JetParticle( tempJet, l1extra::L1JetParticle::JetType::kCentral, 0 ) );
+
 	 continue;
        }
        
