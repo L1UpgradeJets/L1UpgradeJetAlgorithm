@@ -136,6 +136,7 @@ conf_(iConfig)
     // Extract jet pT threshold for Ht, mHt calculation
     energySumsJetPtThreshold   = iConfig.getParameter<double> ("EnergySumsJetPtThreshold");
    
+    pTCalibrationThreshold     = iConfig.getParameter<double> ("pTCalibrationThreshold");
 
 }
 
