@@ -300,8 +300,10 @@ JetHist::JetHist(const edm::ParameterSet& iConfig): conf_(iConfig)
     0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0};
 
   jetList.push_back("PrePUS");      // PrePUS upgrade Jets
+  jetList.push_back("PUS");      	// PUS upgrade Jets
   jetList.push_back("CalibPrePUS");      // PrePUS upgrade Jets
-   jetList.push_back("Ak5");             // ak5 PUS calibrated Jets
+  jetList.push_back("CalibPUS");      // PrePUS upgrade Jets
+  jetList.push_back("Ak5");             // ak5 PUS calibrated Jets
   // ith Jet lists
   // ************************************************************
 
@@ -344,6 +346,21 @@ JetHist::JetHist(const edm::ParameterSet& iConfig): conf_(iConfig)
   calibLabel.push_back("TowerJet CalibPrePUS leading three jets, Ak5 PUS");
   calibPrefix.push_back("Calibration_CalibPrePUS_ak5PUS_AllJets");
   calibLabel.push_back("TowerJet CalibPrePUS, Ak5 PUS_AllJets");
+
+  calibPrefix.push_back("Calibration_PUS_ak5PUS");
+  calibLabel.push_back("TowerJet PUS, Ak5 PUS");
+  calibPrefix.push_back("Calibration_PUS_ak5PUS_3Jets");
+  calibLabel.push_back("TowerJet PUS leading three jets, Ak5 PUS");
+  calibPrefix.push_back("Calibration_PUS_ak5PUS_AllJets");
+  calibLabel.push_back("TowerJet PUS, Ak5 PUS_AllJets");
+
+  calibPrefix.push_back("Calibration_CalibPUS_ak5PUS");
+  calibLabel.push_back("TowerJet CalibPUS, Ak5 PUS");
+  calibPrefix.push_back("Calibration_CalibPUS_ak5PUS_3Jets");
+  calibLabel.push_back("TowerJet CalibPUS leading three jets, Ak5 PUS");
+  calibPrefix.push_back("Calibration_CalibPUS_ak5PUS_AllJets");
+  calibLabel.push_back("TowerJet CalibPUS, Ak5 PUS_AllJets");
+
   //calibPrefix.push_back("Calibration_CalibPrePUS_ak5PUS");
   //calibLabel.push_back("TowerJet CalibPrePUS, Ak5 PUS");
   //calibPrefix.push_back("Calibration_Curr_ak5PUS");
@@ -382,9 +399,14 @@ JetHist::JetHist(const edm::ParameterSet& iConfig): conf_(iConfig)
   matchPrefix.push_back("PrePUS_ak5PUS");
   matchLabel.push_back("TowerJet PrePUS, Ak5 PUS");
 
+  matchPrefix.push_back("PUS_ak5PUS");
+  matchLabel.push_back("TowerJet PUS, Ak5 PUS");
+
   matchPrefix.push_back("CalibPrePUS_ak5PUS");
   matchLabel.push_back("TowerJet CalibPrePUS, Ak5 PUS");
 
+  matchPrefix.push_back("CalibPUS_ak5PUS");
+  matchLabel.push_back("TowerJet CalibPUS, Ak5 PUS");
 
 
 
@@ -735,6 +757,7 @@ JetHist::JetHist(const edm::ParameterSet& iConfig): conf_(iConfig)
     booker.book2DTProf( matchPre + "_DeltaPhi_vs_OffPT" , matchSubDir, "#Delta#phi vs Offline P_{T};Offline p_{T} (GeV);#Delta#phi",   pOffPT, pDeltaPhi);
     // Eta Correlations
     booker.book2DTProf( matchPre + "_L1PT_vs_Eta"     , matchSubDir, "L1 P_{T} vs #eta;L1 #eta;L1 P_{T} (GeV)", pOffEta, pL1PTLarge);
+    booker.book2DTProf( matchPre + "_OffPT_vs_Eta"     , matchSubDir, "Offline P_{T} vs #eta;Offline #eta;Offline P_{T} (GeV)", pOffEta, pOffPT);
     booker.book2DTProf( matchPre + "_DeltaPTRel_vs_Eta"  , matchSubDir, "#DeltaP_{T}^{Rel} vs #eta;L1 #eta;#DeltaP_{T}^{Rel}", pOffEta, pDeltaPTRel);
     booker.book2DTProf( matchPre + "_DeltaEta_vs_Eta" , matchSubDir, "#Delta#eta vs #eta;L1 #eta;#Delta#eta",   pOffEta, pDeltaEta);
     booker.book2DTProf( matchPre + "_DeltaPhi_vs_Eta" , matchSubDir, "#Delta#phi vs #eta;L1 #eta;#Delta#phi",   pOffEta, pDeltaPhi);
@@ -991,12 +1014,24 @@ JetHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     evValid = false;   
     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("PrePUSTowerJetL1Jet") << std::endl;
   }
+  edm::Handle<l1extra::L1JetParticleCollection> PUS_L1Jet;
+  iEvent.getByLabel(conf_.getParameter<edm::InputTag>("PUSTowerJetL1Jet"), PUS_L1Jet); 
+  if(!PUS_L1Jet.isValid()){
+    evValid = false;   
+    edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("PUSTowerJetL1Jet") << std::endl;
+  }
 
   edm::Handle<l1extra::L1JetParticleCollection> CalibPrePUS_L1Jet;
   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("CalibratedPrePUSak5PUSTowerJetL1Jet"), CalibPrePUS_L1Jet); 
   if(!CalibPrePUS_L1Jet.isValid()){
     evValid = false;   
     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("CalibratedPrePUSak5PUSTowerJetL1Jet") << std::endl;
+  }
+  edm::Handle<l1extra::L1JetParticleCollection> CalibPUS_L1Jet;
+  iEvent.getByLabel(conf_.getParameter<edm::InputTag>("CalibratedPUSak5PUSTowerJetL1Jet"), CalibPUS_L1Jet); 
+  if(!CalibPUS_L1Jet.isValid()){
+    evValid = false;   
+    edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("CalibratedPUSak5PUSTowerJetL1Jet") << std::endl;
   }
 
   // ************************************************************
@@ -1028,13 +1063,16 @@ JetHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     // *                                   L1-Offline lead jet matching                                   *
     // ****************************************************************************************************
 
-#ifdef L1_JET_PLOTS
+//#ifdef L1_JET_PLOTS
     PRINT("L1 plots")
  
 
-     fillL1Histograms( PrePUS_L1Jet,      "PrePUS" );
+       fillL1Histograms( PrePUS_L1Jet,   "PrePUS" );
+       fillL1Histograms( PUS_L1Jet,      "PUS" );
+       fillL1Histograms( CalibPrePUS_L1Jet,   "CalibPrePUS" );
+       fillL1Histograms( CalibPUS_L1Jet,      "CalibPUS" );
        fillL1Histograms( Ak5PUS_L1Jet, "Ak5" );
-#endif
+//#endif
 
 
 #ifdef FASTJET
@@ -1092,7 +1130,7 @@ JetHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
 
-#ifdef CALIBRATION
+//#ifdef CALIBRATION
 
 
       
@@ -1112,7 +1150,15 @@ JetHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       calibrateL1RECO(  CalibPrePUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibPrePUS_ak5PUS_3Jets",            1, 3, 2.5);
       calibrateL1RECO(  CalibPrePUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibPrePUS_ak5PUS_AllJets",            1, 999, 2.5);
 
-#endif
+      calibrateL1RECO(  PUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_PUS_ak5PUS",            1, jetRankComparison, 2.5);
+      calibrateL1RECO(  PUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_PUS_ak5PUS_3Jets",            1, 3, 2.5);
+      calibrateL1RECO(  PUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_PUS_ak5PUS_AllJets",            1, 999, 2.5);
+
+      calibrateL1RECO(  CalibPUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibPUS_ak5PUS",            1, jetRankComparison, 2.5);
+      calibrateL1RECO(  CalibPUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibPUS_ak5PUS_3Jets",            1, 3, 2.5);
+      calibrateL1RECO(  CalibPUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibPUS_ak5PUS_AllJets",            1, 999, 2.5);
+
+//#endif
 
 
       // ----------------------------------------------------------------------------------------------------                                                                    
@@ -1145,8 +1191,10 @@ JetHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       // --------------------------------------------------
 
       // PrePUS-ak5PUS
-      benchmarkJets(  PrePUS_L1Jet,                 Ak5PUS_L1Jet, "PrePUS_ak5PUS",            1, 1, 99, 2.5, 1000);
-      benchmarkJets( CalibPrePUS_L1Jet, Ak5PUS_L1Jet, "CalibPrePUS_ak5PUS", 1,1,99,2.5,1000);
+      benchmarkJets(  PrePUS_L1Jet,                 Ak5PUS_L1Jet, "PrePUS_ak5PUS",            1, 1, 999, 2.5, 1000);
+      benchmarkJets( CalibPrePUS_L1Jet, Ak5PUS_L1Jet, "CalibPrePUS_ak5PUS", 1,1,999,2.5,1000);
+      benchmarkJets(  PUS_L1Jet,                 Ak5PUS_L1Jet, "PUS_ak5PUS",            1, 1, 999, 2.5, 1000);
+      benchmarkJets( CalibPUS_L1Jet, Ak5PUS_L1Jet, "CalibPUS_ak5PUS", 1,1,999,2.5,1000);
 
 
 //#endif
@@ -1273,10 +1321,8 @@ JetHist::reverseCumulative( TH1* histogram, TH1* rCumulHist ){
 void 
 JetHist::fillL1Histograms( edm::Handle<l1extra::L1JetParticleCollection> const& L1Jets, TString prefix )
 {
-
   // Event quantities
   int NJets = std::distance(L1Jets->begin(), L1Jets->end());
-  
   
   // ***********************************************************************
   // *                  General jet distributions                          *
@@ -2248,6 +2294,8 @@ JetHist::benchmarkJets( edm::Handle<l1extra::L1JetParticleCollection> const& L1J
     // Eta Correlations
     hist2D[matchPre + "_L1PT_vs_Eta"     ]    ->Fill(L1Eta, L1Pt);          
     hist1D[matchPre + "_L1PT_vs_Eta_prof"]    ->Fill(L1Eta, L1Pt);          
+    hist2D[matchPre + "_OffPT_vs_Eta"     ]    ->Fill(ak5Eta, ak5Pt);          
+    hist1D[matchPre + "_OffPT_vs_Eta_prof"]    ->Fill(ak5Eta, ak5Pt);          
     hist2D[matchPre + "_DeltaPTRel_vs_Eta"  ]    ->Fill(L1Eta, deltaPtRel);         
     hist1D[matchPre + "_DeltaPTRel_vs_Eta_prof"] ->Fill(L1Eta, deltaPtRel);         
     hist2D[matchPre + "_DeltaEta_vs_Eta" ]    ->Fill(L1Eta, deltaEta);        

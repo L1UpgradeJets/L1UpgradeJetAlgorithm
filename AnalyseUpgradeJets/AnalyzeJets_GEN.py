@@ -2,9 +2,9 @@ import FWCore.ParameterSet.Config as cms
 
 from lutables_cfi import *
 
-import QcdAnalyzeJetsInput 
+#import QcdAnalyzeJetsInput 
 
-gFileName = cms.string('OutputJetsQcdCalibratedNoThreshold.root')
+gFileName = cms.string('OutputJetsQcdUnCalibrated.root')
 #cms.options.SkipEvent = cms.untracked.vstring('ProductNotFound')
 # **************************************************
 # *                  Thresholds                    *
@@ -25,7 +25,7 @@ process = cms.Process("Analyze")
 process.load("FWCore.MessageService.MessageLogger_cfi")
 
 # Stop stupid output after every event
-process.MessageLogger.cerr.FwkReport.reportEvery = 10000
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.MessageLogger = cms.Service("MessageLogger",
     threshold = cms.untracked.string('ERROR') 
@@ -33,15 +33,20 @@ process.MessageLogger = cms.Service("MessageLogger",
 
 #process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-process.options = cms.untracked.PSet( 
-  SkipEvent = cms.untracked.vstring('ProductNotFound')
-)
+#process.options = cms.untracked.PSet( 
+#  SkipEvent = cms.untracked.vstring('ProductNotFound')
+#)
 
 
 process.source = cms.Source("PoolSource",
                             #fileNames = cms.untracked.vstring( 'root://gfe02.grid.hep.ph.ic.ac.uk/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/mbaber/SingleMu_20Feb_11x11/JetCollections_224_1_l1V.root'),
                             #fileNames = QcdAnalyzeJetsInput.readFiles,
-                            fileNames = cms.untracked.vstring('file:JetCollectionsQcd.root'),
+                            fileNames = cms.untracked.vstring(
+			    #	'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_15to40/JetCollections_QCD_Pt_15to40.root',
+                            	'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_40to100/JetCollections_QCD_Pt_40to100.root',
+                            #	'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_100to300/JetCollections_QCD_Pt_100to300.root'
+			    ),
+                            #fileNames = cms.untracked.vstring('file:JetCollections_QCD_Pt_40to100.root'),
    skipEvents = cms.untracked.uint32(0)
 )
 process.TFileService = cms.Service("TFileService",
@@ -130,6 +135,7 @@ process.JetProducer = cms.EDProducer('JetProducer',
                                      Filtered1DTowerJet         = cms.InputTag("L1TowerJetFilter1D:"),
 
 				     # L1 Jets to use ###############################################################
+                                     PUSubTowerJet           = cms.InputTag("L1TowerJetPUSubtractedProducer:PUSubCenJets:L1UpgradeJet"),
                                      PrePUSubTowerJet           = cms.InputTag("L1TowerJetPUSubtractedProducer:PrePUSubCenJets:L1UpgradeJet"),
 				     ################################################################################
 
@@ -191,7 +197,7 @@ process.JetCalibProducer = cms.EDProducer('JetCalibProducer',
                                           UncalibratedPrePUSL1Jet       = cms.InputTag("JetProducer:PrePUSTowerJetL1Jet"), #L1 Jet
                                           #UncalibratedPrePUSTowerJet    = cms.InputTag("L1TowerJetPUSubtractedProducer:PrePUSubCenJets"),
                                           #UncalibratedPUSTowerJet       = cms.InputTag("L1TowerJetPUSubtractedProducer:PUSubCenJets"), 
-                                          #UncalibratedPUSL1Jet          = cms.InputTag("JetProducer:PUSTowerJetL1Jet"),
+                                          UncalibratedPUSL1Jet          = cms.InputTag("JetProducer:PUSTowerJetL1Jet"),
                                           #UncalibratedLPUSTowerJet      = cms.InputTag("L1TowerJetPUSubtractedProducer:LocalPUSubCenJets"), 
                                           #UncalibratedLPUSL1Jet         = cms.InputTag("JetProducer:LPUSTowerJetL1Jet"),
                                          
@@ -376,7 +382,7 @@ process.JetHist = cms.EDAnalyzer('JetHist',
 
                                  # Matching parameters
                                  # -------------------
-#                                 MaxDeltaR = cms.double(0.5),                                     
+#                                 MaxDeltaR = cms.double(0.7),                                     
                                  MaxDeltaR = cms.double(0.7),                                     
                                  
                                  # iEta bin width to sample to obtain calibration factors

@@ -39,14 +39,20 @@ process.maxEvents = cms.untracked.PSet(
     # restrict number of events
 #    input = cms.untracked.int32(100)
     # run over all events
-    input = cms.untracked.int32(10000)
+    input = cms.untracked.int32(200)
 )
+
+#gFolder = 'QCD_Pt_15to40'
+gFolder = 'QCD_Pt_40to100'
+#gFolder = 'QCD_Pt_100to300'
 
 process.source = cms.Source("PoolSource",
  fileNames = cms.untracked.vstring(
 #'file:FAB2AF55-B2D4-E211-B254-0025B3E05DDA.root'
 #'/store/mc/UpgFall13d/HToTauTau_125_14TeV_powheg_pythia6/GEN-SIM-DIGI-RAW/PU140bx25_POSTLS261_V3-v1/20000/FAF4B2D5-0539-E311-B5C3-002618FDA279.root'
-'/store/mc/UpgFall13d/QCD_Pt_300to470_pythia6/GEN-SIM-DIGI-RAW/PU140bx25_POSTLS261_V3-v1/20000/FCF11D5B-0739-E311-9B6D-003048FFD796.root'
+#'/store/mc/UpgFall13d/QCD_Pt_300to470_pythia6/GEN-SIM-DIGI-RAW/PU140bx25_POSTLS261_V3-v1/20000/FCF11D5B-0739-E311-9B6D-003048FFD796.root'
+'/store/group/comm_trigger/L1TrackTrigger/BE5D_612_SLHC6_patch1/%s/PU140/m1_QCD_Pt_40to100_TuneZ2star_14TeV_pythia6_DIGI.root'%(gFolder),
+#'/store/group/comm_trigger/L1TrackTrigger/BE5D_612_SLHC6_patch1/%s/PU140/m2_QCD_Pt_100t3100_TuneZ2star_14TeV_pythia6_DIGI.root'%(gFolder),
    ),
 )
 
@@ -63,8 +69,9 @@ from RecoLuminosity.LumiProducer.lumiProducer_cff import *
 # *                               Running processes                         *
 # ***************************************************************************
 process.o1 = cms.OutputModule("PoolOutputModule",
-  fileName = cms.untracked.string('JetCollections.root'),
-    #SelectEvents = cms.untracked.PSet(SelectEvents = cms.vstring('trigger_')),
+#  fileName = cms.untracked.string('root://eoscms//eos/cms/store/cmst3/user/nckw/l1jet/pu140/nocalib/%s/JetCollections.root'%gFolder),
+  fileName = cms.untracked.string('JetCollections_%s.root'%gFolder),
+    #SelectEvents = cms.untracked.PSet(SelectEvents = cms.vstring('trigger_')),            
     outputCommands = cms.untracked.vstring('drop *_*_*_*',
 
                                            # L1 objects
@@ -76,14 +83,14 @@ process.o1 = cms.OutputModule("PoolOutputModule",
                                            'keep *_L1RingSubtractionProducer_*_*',
 
                                            # GCT digis
-                                           'keep *_gctDigis_*_*',
+                                          # 'keep *_gctDigis_*_*',
                                            # Current L1 emulation
 #                                           'keep L1CaloRegions_l1GctHwDigis_*_*',
                                            
-                                           'keep *_l1GctHwDigis_*_*',
-                                           'keep *_ecalDigis_*_*',
-                                           'keep *_hcalDigis_*_*',
-                                           'keep *_valGctDigis_*_*',
+                                          # 'keep *_l1GctHwDigis_*_*',
+                                          # 'keep *_ecalDigis_*_*',
+                                          # 'keep *_simHcalTriggerPrimitiveDigis_*_*',
+                                          # 'keep *_valGctDigis_*_*',
 
                                            # L1 Upgrade jets
                                            'keep *_SLHCL1ExtraParticles_*_*',

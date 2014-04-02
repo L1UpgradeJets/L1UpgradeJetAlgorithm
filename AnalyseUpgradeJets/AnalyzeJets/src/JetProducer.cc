@@ -368,6 +368,7 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // ************************************************************
   SUBPRINT("Current Jets")
 
+/*
     // Uncalibrated central jets
    edm::Handle<L1GctJetCandCollection>  L1GCTUncalibCenJet;
    iEvent.getByLabel(conf_.getParameter<edm::InputTag>("CurrentL1GCTUncalibCentralJet"), L1GCTUncalibCenJet );
@@ -380,7 +381,7 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    if(!L1GCTUncalibTauJet.isValid()){
      edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("CurrentL1GCTUncalibTauJet") << std::endl;
    }
-
+*/
 
 
     
@@ -432,8 +433,13 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   if(!PrePUS_Tower.isValid()){
     evValid = false;
     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("PrePUSubTowerJet") << std::endl;
-  }
- 
+  }  
+  edm::Handle<l1slhc::L1TowerJetCollection> PUS_Tower;
+  iEvent.getByLabel(conf_.getParameter<edm::InputTag>("PUSubTowerJet"), PUS_Tower);
+  if(!PUS_Tower.isValid()){
+    evValid = false;
+    edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("PUSubTowerJet") << std::endl;
+  }  
 
   // ************************************************************
   // *                        RECO Jets                         *
@@ -570,13 +576,29 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
    }
-   
+   for (l1slhc::L1TowerJetCollection::const_iterator Tower_It = PUS_Tower->begin(); Tower_It != PUS_Tower->end(); ++Tower_It ){
+     
+     math::PtEtaPhiMLorentzVector tempJet;
+     tempJet.SetCoordinates( Tower_It->p4().Pt(), Tower_It->p4().eta(), Tower_It->p4().phi(), Tower_It->p4().M() );
+     
+     // Only retain jet if it passes jet cleaning
+     if ( !(cleanL1Jet(tempJet)) ) continue;
+     outputPUSTowerJet_L1Jet->push_back( l1extra::L1JetParticle( tempJet, l1extra::L1JetParticle::JetType::kCentral, 0 ) );
+
+//      // TODO APPLY CLEANING
+//      TLorentzVector *tempJet2;
+//     tempJet2->SetPtEtaPhiM( Tower_It->p4().Pt(), Tower_It->p4().eta(), Tower_It->p4().phi(), Tower_It->p4().M() );
+//     outputPUSTowerJet_TLorentz->push_back( tempJet2 );
+     
+   }
+ 
 
    // ********************************************************************************
    // *                                Current jets                                  *
    // ********************************************************************************
 
 
+/*
 
    // Uncalibrated GCT jets
    std::vector <l1extra::L1JetParticle> unsortedUncalibCurrentL1Jets;
@@ -614,7 +636,6 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      //          std::cout << "Uncalib TAU: Pt = " << Pt << "\tEta = " << eta << "\tPhi = " << phiDeg << "\t" << phi << "\n";
 
    }
-
    // Current uncalibrated L1 central jets
    for(unsigned int iCenJet = 0; iCenJet < L1GCTUncalibCenJet->size(); ++iCenJet ) {
 
@@ -648,7 +669,7 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      //          std::cout << "Uncalib CEN: Pt = " << Pt << "\tEta = " << eta << "\tPhi = " << phiDeg << "\t" << phi << "\n";
 
    }
-
+*/
   
 
 
@@ -693,16 +714,16 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   
    
    // Sort current jets
-   if ( unsortedCurrentL1Jets.size() > 1){
-     std::sort( unsortedCurrentL1Jets.begin(), unsortedCurrentL1Jets.end(),  CurrentL1JetRankDescending );
-   }
+//   if ( unsortedCurrentL1Jets.size() > 1){
+//     std::sort( unsortedCurrentL1Jets.begin(), unsortedCurrentL1Jets.end(),  CurrentL1JetRankDescending );
+//   }
    // Sort uncalibrated current jets
-   if ( unsortedUncalibCurrentL1Jets.size() > 1){
-     std::sort( unsortedUncalibCurrentL1Jets.begin(), unsortedUncalibCurrentL1Jets.end(),  CurrentL1JetRankDescending );
-   }
+//   if ( unsortedUncalibCurrentL1Jets.size() > 1){
+//     std::sort( unsortedUncalibCurrentL1Jets.begin(), unsortedUncalibCurrentL1Jets.end(),  CurrentL1JetRankDescending );
+//   }
 
-   int matchedUncalib(0);
-   
+   //int matchedUncalib(0);
+   /*
    // Store sorted Current jets
    for (uint iJet = 0; iJet < unsortedCurrentL1Jets.size(); ++iJet){
        
@@ -749,6 +770,7 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
        
    }
+   */
 
 //    int calibTotal         = unsortedCurrentL1Jets.size();
 //    double percentageMatch = 100.* double(matchedUncalib)/calibTotal;
@@ -974,6 +996,7 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    // Jets
    iEvent.put( outputPrePUSTowerJet_L1Jet,     "PrePUSTowerJetL1Jet"); // -> THESE will be out L1 Jets
+   iEvent.put( outputPUSTowerJet_L1Jet,     "PUSTowerJetL1Jet"); // -> THESE will be out L1 Jets PU
    iEvent.put( outputUncalibCurrentJet_L1Jet,  "CurrentUncalibJetL1Jet");
    iEvent.put( outputCurrentJet_L1Jet,         "CurrentJetL1Jet");
    iEvent.put( outputPrePUSRawAk5CaloJet_L1Jet,"PrePUSRawAk5CaloJetL1Jet"); // -> These are the GenJet Collection
