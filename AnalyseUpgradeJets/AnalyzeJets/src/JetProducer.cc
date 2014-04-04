@@ -367,7 +367,7 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // *                       Current Jets                       *
   // ************************************************************
   SUBPRINT("Current Jets")
-
+/*
     // Uncalibrated central jets
    edm::Handle<L1GctJetCandCollection>  L1GCTUncalibCenJet;
    iEvent.getByLabel(conf_.getParameter<edm::InputTag>("CurrentL1GCTUncalibCentralJet"), L1GCTUncalibCenJet );
@@ -382,7 +382,7 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
 
 
-
+*/
     
    // Get L1 jets to be used, currently Cental and Tau jets
    // std::vector <InputTag> l1extraparticles = conf_.getParameter< std::vector < InputTag > >("extrajet");
@@ -581,7 +581,7 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    // Uncalibrated GCT jets
    std::vector <l1extra::L1JetParticle> unsortedUncalibCurrentL1Jets;
 
-
+/*
 
    // Tau jets
    for(unsigned int iTauJet = 0; iTauJet < L1GCTUncalibTauJet->size(); ++iTauJet ) {
@@ -649,7 +649,7 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    }
 
-  
+  */
 
 
    // Loop through central jet and tau jet collections
