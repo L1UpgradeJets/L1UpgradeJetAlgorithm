@@ -579,7 +579,9 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    for (l1slhc::L1TowerJetCollection::const_iterator Tower_It = PUS_Tower->begin(); Tower_It != PUS_Tower->end(); ++Tower_It ){
      
      math::PtEtaPhiMLorentzVector tempJet;
-     tempJet.SetCoordinates( Tower_It->p4().Pt(), Tower_It->p4().eta(), Tower_It->p4().phi(), Tower_It->p4().M() );
+     double tempEta = Tower_It->p4().eta();
+     if(foldEta) tempEta = fabs(tempEta);
+     tempJet.SetCoordinates( Tower_It->p4().Pt(), tempEta, Tower_It->p4().phi(), Tower_It->p4().M() );
      
      // Only retain jet if it passes jet cleaning
      if ( !(cleanL1Jet(tempJet)) ) continue;
