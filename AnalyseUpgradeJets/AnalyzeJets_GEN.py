@@ -4,7 +4,7 @@ from lutables_cfi import *
 
 #import QcdAnalyzeJetsInput 
 
-gFileName = cms.string('OutputJetsQcdUnCalibrated.root')
+gFileName = cms.string('OutputJetsQcdDr0p5Pt5PUS.root')
 #cms.options.SkipEvent = cms.untracked.vstring('ProductNotFound')
 # **************************************************
 # *                  Thresholds                    *
@@ -42,9 +42,9 @@ process.source = cms.Source("PoolSource",
                             #fileNames = cms.untracked.vstring( 'root://gfe02.grid.hep.ph.ic.ac.uk/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/mbaber/SingleMu_20Feb_11x11/JetCollections_224_1_l1V.root'),
                             #fileNames = QcdAnalyzeJetsInput.readFiles,
                             fileNames = cms.untracked.vstring(
-			    #	'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_15to40/JetCollections_QCD_Pt_15to40.root',
+			                        '/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_15to40/JetCollections_QCD_Pt_15to40.root',
                             	'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_40to100/JetCollections_QCD_Pt_40to100.root',
-                            #	'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_100to300/JetCollections_QCD_Pt_100to300.root'
+                            	'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_100to300/JetCollections_QCD_Pt_100to300.root'
 			    ),
                             #fileNames = cms.untracked.vstring('file:JetCollections_QCD_Pt_40to100.root'),
    skipEvents = cms.untracked.uint32(0)
@@ -118,13 +118,13 @@ process.JetProducer = cms.EDProducer('JetProducer',
                                      # *       Cleaning cuts        *
                                      # ******************************
                                      
-                                     minL1JetPt          = cms.double(1),
+                                     minL1JetPt          = cms.double(5),
                                      maxL1JetEta         = cms.double(2.5),
-                                     minRECOJetPt        = cms.double(1),
+                                     minRECOJetPt        = cms.double(5),
                                      maxRECOJetEta       = cms.double(2.5),
 
                                      # Fold eta to increase stats?
-                                     FoldEta = cms.bool( False ),
+                                     FoldEta = cms.bool( True ),
 
                                      # ******************************
                                      # *    TowerJet collections    *
@@ -383,7 +383,7 @@ process.JetHist = cms.EDAnalyzer('JetHist',
                                  # Matching parameters
                                  # -------------------
 #                                 MaxDeltaR = cms.double(0.7),                                     
-                                 MaxDeltaR = cms.double(0.7),                                     
+                                 MaxDeltaR = cms.double(0.5),                                     
                                  
                                  # iEta bin width to sample to obtain calibration factors
                                  iEtaCalibrationBinWidth = cms.double( 1 ),
