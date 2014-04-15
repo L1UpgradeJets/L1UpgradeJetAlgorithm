@@ -440,6 +440,12 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     evValid = false;
     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("PUSubTowerJet") << std::endl;
   }  
+  edm::Handle<l1slhc::L1TowerJetCollection> LPUS_Tower;
+  iEvent.getByLabel(conf_.getParameter<edm::InputTag>("LocalPUSubTowerJet"), LPUS_Tower);
+  if(!LPUS_Tower.isValid()){
+    evValid = false;
+    edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("LocalPUSubTowerJet") << std::endl;
+  }  
 
   // ************************************************************
   // *                        RECO Jets                         *
@@ -594,6 +600,23 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      
    }
  
+   for (l1slhc::L1TowerJetCollection::const_iterator Tower_It = LPUS_Tower->begin(); Tower_It != LPUS_Tower->end(); ++Tower_It ){
+     
+     math::PtEtaPhiMLorentzVector tempJet;
+     double tempEta = Tower_It->p4().eta();
+     if(foldEta) tempEta = fabs(tempEta);
+     tempJet.SetCoordinates( Tower_It->p4().Pt(), tempEta, Tower_It->p4().phi(), Tower_It->p4().M() );
+     
+     // Only retain jet if it passes jet cleaning
+     if ( !(cleanL1Jet(tempJet)) ) continue;
+     outputLPUSTowerJet_L1Jet->push_back( l1extra::L1JetParticle( tempJet, l1extra::L1JetParticle::JetType::kCentral, 0 ) );
+
+//      // TODO APPLY CLEANING
+//      TLorentzVector *tempJet2;
+//     tempJet2->SetPtEtaPhiM( Tower_It->p4().Pt(), Tower_It->p4().eta(), Tower_It->p4().phi(), Tower_It->p4().M() );
+//     outputPUSTowerJet_TLorentz->push_back( tempJet2 );
+     
+   }
 
    // ********************************************************************************
    // *                                Current jets                                  *
@@ -999,6 +1022,7 @@ JetProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    // Jets
    iEvent.put( outputPrePUSTowerJet_L1Jet,     "PrePUSTowerJetL1Jet"); // -> THESE will be out L1 Jets
    iEvent.put( outputPUSTowerJet_L1Jet,     "PUSTowerJetL1Jet"); // -> THESE will be out L1 Jets PU
+   iEvent.put( outputLPUSTowerJet_L1Jet,     "LPUSTowerJetL1Jet"); // -> THESE will be out L1 Jets PU
    iEvent.put( outputUncalibCurrentJet_L1Jet,  "CurrentUncalibJetL1Jet");
    iEvent.put( outputCurrentJet_L1Jet,         "CurrentJetL1Jet");
    iEvent.put( outputPrePUSRawAk5CaloJet_L1Jet,"PrePUSRawAk5CaloJetL1Jet"); // -> These are the GenJet Collection

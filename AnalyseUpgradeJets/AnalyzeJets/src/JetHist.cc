@@ -301,8 +301,10 @@ JetHist::JetHist(const edm::ParameterSet& iConfig): conf_(iConfig)
 
   jetList.push_back("PrePUS");      // PrePUS upgrade Jets
   jetList.push_back("PUS");      	// PUS upgrade Jets
+  jetList.push_back("LPUS");      	// PUS upgrade Jets
   jetList.push_back("CalibPrePUS");      // PrePUS upgrade Jets
   jetList.push_back("CalibPUS");      // PrePUS upgrade Jets
+  jetList.push_back("CalibLPUS");      // PrePUS upgrade Jets
   jetList.push_back("Ak5");             // ak5 PUS calibrated Jets
   // ith Jet lists
   // ************************************************************
@@ -354,12 +356,26 @@ JetHist::JetHist(const edm::ParameterSet& iConfig): conf_(iConfig)
   calibPrefix.push_back("Calibration_PUS_ak5PUS_AllJets");
   calibLabel.push_back("TowerJet PUS, Ak5 PUS_AllJets");
 
+  calibPrefix.push_back("Calibration_LPUS_ak5PUS");
+  calibLabel.push_back("TowerJet LPUS, Ak5 PUS");
+  calibPrefix.push_back("Calibration_LPUS_ak5PUS_3Jets");
+  calibLabel.push_back("TowerJet LPUS leading three jets, Ak5 PUS");
+  calibPrefix.push_back("Calibration_LPUS_ak5PUS_AllJets");
+  calibLabel.push_back("TowerJet LPUS, Ak5 PUS_AllJets");
+
   calibPrefix.push_back("Calibration_CalibPUS_ak5PUS");
-  calibLabel.push_back("TowerJet CalibPUS, Ak5 PUS");
+  calibLabel.push_back("TowerJet Calib PUS, Ak5 PUS");
   calibPrefix.push_back("Calibration_CalibPUS_ak5PUS_3Jets");
-  calibLabel.push_back("TowerJet CalibPUS leading three jets, Ak5 PUS");
+  calibLabel.push_back("TowerJet Calib PUS leading three jets, Ak5 PUS");
   calibPrefix.push_back("Calibration_CalibPUS_ak5PUS_AllJets");
-  calibLabel.push_back("TowerJet CalibPUS, Ak5 PUS_AllJets");
+  calibLabel.push_back("TowerJet Calib PUS, Ak5 PUS_AllJets");
+
+  calibPrefix.push_back("Calibration_CalibLPUS_ak5PUS");
+  calibLabel.push_back("TowerJet CalibLPUS, Ak5 PUS");
+  calibPrefix.push_back("Calibration_CalibLPUS_ak5PUS_3Jets");
+  calibLabel.push_back("TowerJet CalibLPUS leading three jets, Ak5 PUS");
+  calibPrefix.push_back("Calibration_CalibLPUS_ak5PUS_AllJets");
+  calibLabel.push_back("TowerJet CalibLPUS, Ak5 PUS_AllJets");
 
   //calibPrefix.push_back("Calibration_CalibPrePUS_ak5PUS");
   //calibLabel.push_back("TowerJet CalibPrePUS, Ak5 PUS");
@@ -1020,6 +1036,12 @@ JetHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     evValid = false;   
     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("PUSTowerJetL1Jet") << std::endl;
   }
+  edm::Handle<l1extra::L1JetParticleCollection> LPUS_L1Jet;
+  iEvent.getByLabel(conf_.getParameter<edm::InputTag>("LocalPUSTowerJetL1Jet"), LPUS_L1Jet); 
+  if(!LPUS_L1Jet.isValid()){
+    evValid = false;   
+    edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("LocalPUSTowerJetL1Jet") << std::endl;
+  }
 
   edm::Handle<l1extra::L1JetParticleCollection> CalibPrePUS_L1Jet;
   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("CalibratedPrePUSak5PUSTowerJetL1Jet"), CalibPrePUS_L1Jet); 
@@ -1032,6 +1054,12 @@ JetHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   if(!CalibPUS_L1Jet.isValid()){
     evValid = false;   
     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("CalibratedPUSak5PUSTowerJetL1Jet") << std::endl;
+  }
+  edm::Handle<l1extra::L1JetParticleCollection> CalibLPUS_L1Jet;
+  iEvent.getByLabel(conf_.getParameter<edm::InputTag>("CalibratedLPUSak5PUSTowerJetL1Jet"), CalibLPUS_L1Jet); 
+  if(!CalibLPUS_L1Jet.isValid()){
+    evValid = false;   
+    edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("CalibratedLPUSak5PUSTowerJetL1Jet") << std::endl;
   }
 
   // ************************************************************
@@ -1069,8 +1097,10 @@ JetHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
        fillL1Histograms( PrePUS_L1Jet,   "PrePUS" );
        fillL1Histograms( PUS_L1Jet,      "PUS" );
+       fillL1Histograms( LPUS_L1Jet,      "LPUS" );
        fillL1Histograms( CalibPrePUS_L1Jet,   "CalibPrePUS" );
        fillL1Histograms( CalibPUS_L1Jet,      "CalibPUS" );
+       fillL1Histograms( CalibLPUS_L1Jet,      "CalibLPUS" );
        fillL1Histograms( Ak5PUS_L1Jet, "Ak5" );
 //#endif
 
@@ -1154,9 +1184,17 @@ JetHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       calibrateL1RECO(  PUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_PUS_ak5PUS_3Jets",            1, 3, 2.5);
       calibrateL1RECO(  PUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_PUS_ak5PUS_AllJets",            1, 999, 2.5);
 
+      calibrateL1RECO(  LPUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_LPUS_ak5PUS",            1, jetRankComparison, 2.5);
+      calibrateL1RECO(  LPUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_LPUS_ak5PUS_3Jets",            1, 3, 2.5);
+      calibrateL1RECO(  LPUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_LPUS_ak5PUS_AllJets",            1, 999, 2.5);
+
       calibrateL1RECO(  CalibPUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibPUS_ak5PUS",            1, jetRankComparison, 2.5);
       calibrateL1RECO(  CalibPUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibPUS_ak5PUS_3Jets",            1, 3, 2.5);
       calibrateL1RECO(  CalibPUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibPUS_ak5PUS_AllJets",            1, 999, 2.5);
+      
+      calibrateL1RECO(  CalibLPUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibLPUS_ak5PUS",            1, jetRankComparison, 2.5);
+      calibrateL1RECO(  CalibLPUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibLPUS_ak5PUS_3Jets",            1, 3, 2.5);
+      calibrateL1RECO(  CalibLPUS_L1Jet,                  Ak5PUS_L1Jet, "Calibration_CalibLPUS_ak5PUS_AllJets",            1, 999, 2.5);
 
 //#endif
 
@@ -1195,6 +1233,8 @@ JetHist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       benchmarkJets( CalibPrePUS_L1Jet, Ak5PUS_L1Jet, "CalibPrePUS_ak5PUS", 1,1,999,2.5,1000);
       benchmarkJets(  PUS_L1Jet,                 Ak5PUS_L1Jet, "PUS_ak5PUS",            1, 1, 999, 2.5, 1000);
       benchmarkJets( CalibPUS_L1Jet, Ak5PUS_L1Jet, "CalibPUS_ak5PUS", 1,1,999,2.5,1000);
+      benchmarkJets(  LPUS_L1Jet,                 Ak5PUS_L1Jet, "PUS_ak5PUS",            1, 1, 999, 2.5, 1000);
+      benchmarkJets( CalibLPUS_L1Jet, Ak5PUS_L1Jet, "CalibPUS_ak5PUS", 1,1,999,2.5,1000);
 
 
 //#endif

@@ -31,7 +31,7 @@ process.MessageLogger = cms.Service("MessageLogger",
     threshold = cms.untracked.string('ERROR') 
     )
 
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(5000) )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 #process.options = cms.untracked.PSet( 
 #  SkipEvent = cms.untracked.vstring('ProductNotFound')
@@ -42,7 +42,7 @@ process.source = cms.Source("PoolSource",
                             #fileNames = cms.untracked.vstring( 'root://gfe02.grid.hep.ph.ic.ac.uk/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/mbaber/SingleMu_20Feb_11x11/JetCollections_224_1_l1V.root'),
                             #fileNames = QcdAnalyzeJetsInput.readFiles,
                             fileNames = cms.untracked.vstring(
-			                        '/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_15to40/JetCollections_QCD_Pt_15to40.root',
+			        '/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_15to40/JetCollections_QCD_Pt_15to40.root',
                             	'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_40to100/JetCollections_QCD_Pt_40to100.root',
                             	'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_100to300/JetCollections_QCD_Pt_100to300.root'
 			    ),
@@ -154,7 +154,8 @@ process.JetProducer = cms.EDProducer('JetProducer',
 
 				     # L1 Jets to use ###############################################################
                                      PUSubTowerJet           = cms.InputTag("L1TowerJetPUSubtractedProducer:PUSubCenJets:L1UpgradeJet"),
-                                     PrePUSubTowerJet           = cms.InputTag("L1TowerJetPUSubtractedProducer:PrePUSubCenJets:L1UpgradeJet"),
+                                     PrePUSubTowerJet        = cms.InputTag("L1TowerJetPUSubtractedProducer:PrePUSubCenJets:L1UpgradeJet"),
+                                     LocalPUSubTowerJet      = cms.InputTag("L1TowerJetPUSubtractedProducer:LocalPUSubCenJets:L1UpgradeJet"),
 				     ################################################################################
 
                                      # Current L1 Jets
@@ -217,7 +218,7 @@ process.JetCalibProducer = cms.EDProducer('JetCalibProducer',
                                           #UncalibratedPUSTowerJet       = cms.InputTag("L1TowerJetPUSubtractedProducer:PUSubCenJets"), 
                                           UncalibratedPUSL1Jet          = cms.InputTag("JetProducer:PUSTowerJetL1Jet"),
                                           #UncalibratedLPUSTowerJet      = cms.InputTag("L1TowerJetPUSubtractedProducer:LocalPUSubCenJets"), 
-                                          #UncalibratedLPUSL1Jet         = cms.InputTag("JetProducer:LPUSTowerJetL1Jet"),
+                                          UncalibratedLPUSL1Jet         = cms.InputTag("JetProducer:LPUSTowerJetL1Jet"),
                                          
 #                                          PUSPreCalibCaloJets       = cms.InputTag("PUsubAK5RawCaloJetProducer"),
                                           #PUSRawAk5CaloJetL1Jet  = cms.InputTag("JetProducer:PUSRawAk5CaloJetL1Jet"),
@@ -318,7 +319,7 @@ process.JetHist = cms.EDAnalyzer('JetHist',
 				# Input from Previous step 
                                  PrePUSTowerJetL1Jet     = cms.InputTag("JetProducer:PrePUSTowerJetL1Jet"), # L1 Jets,
                                  PUSTowerJetL1Jet        = cms.InputTag("JetProducer:PUSTowerJetL1Jet"),
-                                 LPUSTowerJetL1Jet       = cms.InputTag("JetProducer:LPUSTowerJetL1Jet"),
+                                 LocalPUSTowerJetL1Jet       = cms.InputTag("JetProducer:LPUSTowerJetL1Jet"),
 
                                  # Calibrated jets
                                  # **********
