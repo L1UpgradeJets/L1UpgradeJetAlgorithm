@@ -4,7 +4,7 @@ from lutables_cfi import *
 
 #import QcdAnalyzeJetsInput 
 
-gFileName = cms.string('OutputJetsQcdDr0p5Pt5PUS.root')
+gFileName = cms.string('OutputJetsQcd_L1Pt1_Eta2p5_NewCalib5.root')
 #cms.options.SkipEvent = cms.untracked.vstring('ProductNotFound')
 # **************************************************
 # *                  Thresholds                    *
@@ -59,8 +59,8 @@ closeFileFast = cms.untracked.bool(True)
 
 # Put your own LUT in it's place based on your own calibration
 
-myCalibration_PrePUS_ak5PUSLUT = cms.vdouble()
-myCalibration_PrePUS_ak5PUSLUT.extend([
+oldCalibration_PrePUS_ak5PUSLUT_14Feb = cms.vdouble()
+oldCalibration_PrePUS_ak5PUSLUT_14Feb.extend([
   0.717833, 9.995047,  -0.999659,  5.410312,  1.520436, 3.081143,
   0.722580, 9.995841, 4.550480,  9.997039, 4.065584, 3.287689,
   0.854021, 2.804733, 9.999661,  0.388765, 9.994117, 3.911864,
@@ -75,6 +75,24 @@ myCalibration_PrePUS_ak5PUSLUT.extend([
   0.854021, 2.804733, 9.999661,  0.388765, 9.994117, 3.911864,
   0.722580, 9.995841, 4.550480,  9.997039, 4.065584, 3.287689,
   0.717833, 9.995047,  -0.999659,  5.410312,  1.520436, 3.081143,
+])
+
+newCalibration_PUS_ak5PUSLUT_14Apr = cms.vdouble()
+newCalibration_PUS_ak5PUSLUT_14Apr.extend([
+1.148003,       0.000000,       8.677759,       0.145034,       2.801464,       3.939712,
+  1.204024,       0.000008,       9.976019,       0.307183,       1.044437,       3.617630,
+  1.250919,       1.517402,       9.984159,       0.281036,       1.307387,       3.714273,
+  1.270562,       0.055556,       9.959756,       0.356810,       1.139442,       3.837417,
+  1.266643,       0.000045,       8.111331,       0.411734,       0.837187,       3.643055,
+  1.215852,       4.533749,       9.695255,       0.260912,       1.855027,       3.863853,
+  1.298982,       0.000000,       7.990466,       0.364752,       1.168819,       3.751498,
+  1.298982,       0.000000,       7.990466,       0.364752,       1.168819,       3.751498,
+  1.215852,       4.533749,       9.695255,       0.260912,       1.855027,       3.863853,
+  1.266643,       0.000045,       8.111331,       0.411734,       0.837187,       3.643055,
+  1.270562,       0.055556,       9.959756,       0.356810,       1.139442,       3.837417,
+  1.250919,       1.517402,       9.984159,       0.281036,       1.307387,       3.714273,
+  1.204024,       0.000008,       9.976019,       0.307183,       1.044437,       3.617630,
+  1.148003,       0.000000,       8.677759,       0.145034,       2.801464,       3.939712,
 ])
 
 process.EventProducer = cms.EDProducer('EventProducer',
@@ -118,13 +136,13 @@ process.JetProducer = cms.EDProducer('JetProducer',
                                      # *       Cleaning cuts        *
                                      # ******************************
                                      
-                                     minL1JetPt          = cms.double(5),
+                                     minL1JetPt          = cms.double(1),
                                      maxL1JetEta         = cms.double(2.5),
-                                     minRECOJetPt        = cms.double(5),
+                                     minRECOJetPt        = cms.double(1),
                                      maxRECOJetEta       = cms.double(2.5),
 
                                      # Fold eta to increase stats?
-                                     FoldEta = cms.bool( True ),
+                                     FoldEta = cms.bool( False ),
 
                                      # ******************************
                                      # *    TowerJet collections    *
@@ -218,7 +236,7 @@ process.JetCalibProducer = cms.EDProducer('JetCalibProducer',
                                            # L1 pT calibration threshold, minimum L1 jet pT to apply correction
 #                                           pTCalibrationThreshold  = cms.double( 20 ),
 #                                          pTCalibrationThreshold  = cms.double( 15 ),
-                                          pTCalibrationThreshold  = cms.double( 0 ),
+                                          pTCalibrationThreshold  = cms.double( 5 ),
                                      
                                            # iEta bin width to sample to obtain calibration factors
                                            iEtaCalibrationBinWidth = cms.double( 1 ),
@@ -226,13 +244,15 @@ process.JetCalibProducer = cms.EDProducer('JetCalibProducer',
                                            # Number of fit parameters
                                            nParams = cms.int32(6),
 
+                                          #Should the function be inverted for calibration
+                                          invertFunction = cms.bool(False),
 
-                                          pTCalibration_PrePUS_ak5PUS         = myCalibration_PrePUS_ak5PUSLUT,
+                                          pTCalibration_PrePUS_ak5PUS         = newCalibration_PUS_ak5PUSLUT_14Apr,
                                           #pTCalibration_PrePUS_ak5PUSLt3      = gCalibration_PrePUS_ak5PUSLt3LUT,
                                           #pTCalibration_PrePUS_ak5PUSNVTXLt15 = gCalibration_PrePUS_ak5PUSNVTXLt15LUT,
                                           #pTCalibration_PrePUS_ak5PUSNVTXLt25 = gCalibration_PrePUS_ak5PUSNVTXLt25LUT,
                                           #pTCalibration_PrePUS_ak5PUSNVTXLt50 = gCalibration_PrePUS_ak5PUSNVTXLt50LUT,
-                                          #pTCalibration_PUS_ak5PUS            = gCalibration_PUS_ak5PUSLUT,
+                                          pTCalibration_PUS_ak5PUS            = newCalibration_PUS_ak5PUSLUT_14Apr,
                                           #pTCalibration_LPUS_ak5PUS           = gCalibration_LPUS_ak5PUSLUT,
                                           #pTCalibration_ak5PUSRaw_ak5PUS      = gCalibration_ak5PUSRaw_ak5PUSLUT,
 

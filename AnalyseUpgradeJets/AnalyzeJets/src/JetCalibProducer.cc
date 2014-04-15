@@ -3,6 +3,8 @@
 //          
 //          INVERTED THE FIT FUNCTION, L1060 and L1379 correction -> 1.0/correction
 //
+//          ADDED OPTION TO INVERT THE FUNCTION
+//
 // -*- C++ -*-
 //
 // Package:    JetCalibProducer
@@ -250,6 +252,7 @@ class JetCalibProducer : public edm::EDProducer {
   // Number of reconstructed ak5 primary vertices
   int NVTX;
 
+  bool invertFunction;
 
 };
 
@@ -373,7 +376,7 @@ JetCalibProducer::JetCalibProducer(const edm::ParameterSet& iConfig): conf_(iCon
   //pTCalibration_PrePUS_NVTXLt25  = iConfig.getParameter< std::vector< double > >("pTCalibration_PrePUS_ak5PUSNVTXLt25");            
   //pTCalibration_PrePUS_NVTXLt50  = iConfig.getParameter< std::vector< double > >("pTCalibration_PrePUS_ak5PUSNVTXLt50");            
   // PUSak5PrePUS 
-  //pTCalibration_PUS_ak5PUS    = iConfig.getParameter< std::vector< double > >("pTCalibration_PUS_ak5PUS");            
+  pTCalibration_PUS_ak5PUS    = iConfig.getParameter< std::vector< double > >("pTCalibration_PUS_ak5PUS");            
   // PUSak5PUS
   //pTCalibration_LPUS_ak5PUS   = iConfig.getParameter< std::vector< double > >("pTCalibration_LPUS_ak5PUS");            
   // ak5PUSRaw
@@ -381,6 +384,8 @@ JetCalibProducer::JetCalibProducer(const edm::ParameterSet& iConfig): conf_(iCon
 
   //pTCalibration_UncalibGCT_ak5PUS = iConfig.getParameter< std::vector< double > >("pTCalibration_UncalibGCT_ak5PUS");
 
+  //Invert the fit function?
+  invertFunction = iConfig.getParameter< bool > ("invertFunction");
 
 //   iEtaPtCorrectionPrePUSak5PrePUS  = iConfig.getParameter< std::vector< double > >("pTCorrectionPrePUSak5PrePUS");
 //   iEtaPtOffsetPrePUSak5PrePUS      = iConfig.getParameter< std::vector< double > >("pTOffsetPrePUSak5PrePUS");
@@ -606,12 +611,12 @@ JetCalibProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      evValid = false;
    }
 
-//   edm::Handle<l1extra::L1JetParticleCollection> UncalibJetPUS_L1Jet;
-//   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("UncalibratedPUSL1Jet"), UncalibJetPUS_L1Jet);
-//   if(!UncalibJetPUS_L1Jet.isValid()){
-//     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("UncalibratedPUSL1Jet") << std::endl;
-//     evValid = false;
-//   }
+   edm::Handle<l1extra::L1JetParticleCollection> UncalibJetPUS_L1Jet;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("UncalibratedPUSL1Jet"), UncalibJetPUS_L1Jet);
+   if(!UncalibJetPUS_L1Jet.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("UncalibratedPUSL1Jet") << std::endl;
+     evValid = false;
+   }
 
 //   edm::Handle<l1extra::L1JetParticleCollection> UncalibJetLPUS_L1Jet;
 //   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("UncalibratedLPUSL1Jet"), UncalibJetLPUS_L1Jet);
@@ -748,15 +753,15 @@ JetCalibProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
      // PUS
-//     calibrateJet( UncalibJetPUS_L1Jet, pTCalibration_PUS_ak5PUS, fitOrder,
-//		   outputCalibTowerJetPUSak5PUS_L1Jet, 
-//		   outputRecalibTowerJetPUSak5PUS_L1Jet, 
-//		   outputNVTXRecalibTowerJetPUSak5PUS_L1Jet, 
-//		   true,
-//		   recalibLowPt_PUS_ak5PUS,
-//		   recalibHighPt_PUS_ak5PUS,
-//		   emptyLUT,
-//		   LUTPtTransition	   );
+     calibrateJet( UncalibJetPUS_L1Jet, pTCalibration_PUS_ak5PUS, fitOrder,
+		   outputCalibTowerJetPUSak5PUS_L1Jet, 
+		   outputRecalibTowerJetPUSak5PUS_L1Jet, 
+		   outputNVTXRecalibTowerJetPUSak5PUS_L1Jet, 
+		   true,
+		   emptyLUT,//recalibLowPt_PUS_ak5PUS,
+		   emptyLUT,//recalibHighPt_PUS_ak5PUS,
+		   emptyLUT,
+		   LUTPtTransition	   );
 
 
      // LPUS
@@ -1057,7 +1062,8 @@ JetCalibProducer::calibrateJet( edm::Handle<l1slhc::L1TowerJetCollection> const&
 	 double term2 = p3 * exp( -p4*((logPt - p5)*(logPt - p5)) );
 
 	 // Calculate the corrected Pt 
-	 double correction = 1.0/(p0 + term1 + term2);
+	 double correction = (p0 + term1 + term2);
+   if(invertFunction) correction = 1.0/correction;
 	 correctedPt    = correction*unCorrectedPt;
 	 
 
@@ -1283,7 +1289,7 @@ JetCalibProducer::calibrateJet( edm::Handle<l1extra::L1JetParticleCollection> Un
        // Jet pT threshold for calibration, only calibrate above threshold
        if ( uncalibJet.pt() < pTCalibrationThreshold ){
 	 // Store un-calibrated L1Jet 
-	 //	 unsortedCalibratedL1Jets.push_back( uncalibJet );
+	 	 unsortedCalibratedL1Jets.push_back( uncalibJet );
 	 continue;
        }
        
@@ -1298,19 +1304,19 @@ JetCalibProducer::calibrateJet( edm::Handle<l1extra::L1JetParticleCollection> Un
 
 	 // Get Eta bin lower and upper bounds 
 	 double EtaLow  = etaRegionSlice[ pEta - 1];
-	 double EtaHigh = etaRegionSlice[ pEta ];
-	 // Eta resides within current boundary
-	 if ( (eta >= EtaLow) && (eta < EtaHigh) ){
-	   //	   std::cout <<  pEta << "\tEta = " << eta << "\t[" << EtaLow << ", " << EtaHigh << "]\n";
-	   break; // found the correct eta bin, break
-	 }
+   double EtaHigh = etaRegionSlice[ pEta ];
+   // Eta resides within current boundary
+   if ( (eta >= EtaLow) && (eta < EtaHigh) ){
+     //	   std::cout <<  pEta << "\tEta = " << eta << "\t[" << EtaLow << ", " << EtaHigh << "]\n";
+     break; // found the correct eta bin, break
+   }
 
        }
 
        // Extract eta dependent correction factors
        // **************************************************
        int etaIndex       = pEta - 1;// Correct for array starting at zero
-       
+
        // Index in the LUT to search for the correction parameter
        int correctionIndex  = fitOrder*etaIndex;
 
@@ -1321,89 +1327,90 @@ JetCalibProducer::calibrateJet( edm::Handle<l1extra::L1JetParticleCollection> Un
        double correctedPt              = 0;
        double recalibCorrectedPt       = 0;
        double recalibNVTXCorrectedPt = 0;
-    
+
        // Use the old method
        if (newMethod == false ){
-	 // pT to the power of the required order
-	 double pTOrder = unCorrectedPt;
+         // pT to the power of the required order
+         double pTOrder = unCorrectedPt;
 
-	 //       std::cout << "iEta = " << iEta << "\nInitial pT = " << unCorrectedPt << "\n";
-	 for (int iOrder = 0; iOrder < fitOrder; ++iOrder){
-	 
-	   uint index = correctionIndex + iOrder;
+         //       std::cout << "iEta = " << iEta << "\nInitial pT = " << unCorrectedPt << "\n";
+         for (int iOrder = 0; iOrder < fitOrder; ++iOrder){
 
-	   // Get correction for current order of pT
-	   double correctionFactor = iEtaPtCorrections[ index ];
-	   double correction       = 0;
+           uint index = correctionIndex + iOrder;
 
-	   if (iOrder == 0){
-	     correction += correctionFactor;
-	   }
-	   else{
-	     correction += correctionFactor*pTOrder;
-	     // Generate pT to the power of the next order
-	     pTOrder *= unCorrectedPt;
-	   }
-	 
-	   // Calculate the corrected jet pT
-	   correctedPt += correction;
+           // Get correction for current order of pT
+           double correctionFactor = iEtaPtCorrections[ index ];
+           double correction       = 0;
 
-	 //    	 std::cout << "CorrectionFactor = " << correctionFactor << "\tCorrection = " << correction 
-// 	   		   << "\tCorrectedPt = " << correctedPt << "\n";
+           if (iOrder == 0){
+             correction += correctionFactor;
+           }
+           else{
+             correction += correctionFactor*pTOrder;
+             // Generate pT to the power of the next order
+             pTOrder *= unCorrectedPt;
+           }
 
-	 }
-	 //	        std::cout << "\n";
-        }
-        else{ // Use the new method
+           // Calculate the corrected jet pT
+           correctedPt += correction;
 
-	 if ( fitOrder != 6 ){
-	   edm::LogWarning("Calibration error") << "ERROR: Cannot perform the new fit method, require 6 parameters only " << fitOrder << " specfied.\n";
-	 }
-	 
-	 // Get parameters
-	 double p0 = iEtaPtCorrections[ correctionIndex ];
-	 double p1 = iEtaPtCorrections[ correctionIndex + 1 ];
-	 double p2 = iEtaPtCorrections[ correctionIndex + 2 ];
-	 double p3 = iEtaPtCorrections[ correctionIndex + 3 ];
-	 double p4 = iEtaPtCorrections[ correctionIndex + 4 ];
-	 double p5 = iEtaPtCorrections[ correctionIndex + 5 ];
+           //    	 std::cout << "CorrectionFactor = " << correctionFactor << "\tCorrection = " << correction 
+           // 	   		   << "\tCorrectedPt = " << correctedPt << "\n";
+
+         }
+         //	        std::cout << "\n";
+       }
+       else{ // Use the new method
+
+         if ( fitOrder != 6 ){
+           edm::LogWarning("Calibration error") << "ERROR: Cannot perform the new fit method, require 6 parameters only " << fitOrder << " specfied.\n";
+         }
+
+         // Get parameters
+         double p0 = iEtaPtCorrections[ correctionIndex ];
+         double p1 = iEtaPtCorrections[ correctionIndex + 1 ];
+         double p2 = iEtaPtCorrections[ correctionIndex + 2 ];
+         double p3 = iEtaPtCorrections[ correctionIndex + 3 ];
+         double p4 = iEtaPtCorrections[ correctionIndex + 4 ];
+         double p5 = iEtaPtCorrections[ correctionIndex + 5 ];
 
 
 
-	 double logPt = log( unCorrectedPt );
+         double logPt = log( unCorrectedPt );
 
-	 double term1 = p1 / ( logPt * logPt + p2 );
-	 double term2 = p3 * exp( -p4*((logPt - p5)*(logPt - p5)) );
+         double term1 = p1 / ( logPt * logPt + p2 );
+         double term2 = p3 * exp( -p4*((logPt - p5)*(logPt - p5)) );
 
-	 // Calculate the corrected Pt 
-	 double correction = 1.0/(p0 + term1 + term2);
-	 correctedPt    = correction*unCorrectedPt;
+         // Calculate the corrected Pt 
+         double correction = (p0 + term1 + term2);
+         if(invertFunction) correction = 1.0/correction;
+         correctedPt    = correction*unCorrectedPt;
 
-	}
+       }
 
        // ----------------------------------------
        // If applicable perform second calibration
        if ( lowPtLUT.columns != 0){
 
-	 double recalibFactor;
+         double recalibFactor;
 
-	 if ( correctedPt < transitionPt ){ // Jet Pt is in low-Pt regime
-  
-	   recalibFactor = getRecalibFactor( correctedPt, etaIndex, lowPtLUT );
+         if ( correctedPt < transitionPt ){ // Jet Pt is in low-Pt regime
 
-	 }
-	 else{ // Pt is in high-Pt regime
+           recalibFactor = getRecalibFactor( correctedPt, etaIndex, lowPtLUT );
 
-	   recalibFactor = getRecalibFactor( correctedPt, etaIndex, highPtLUT );
+         }
+         else{ // Pt is in high-Pt regime
 
-	 }
+           recalibFactor = getRecalibFactor( correctedPt, etaIndex, highPtLUT );
 
-// 	 std::cout << "CorrectionFactor = " << recalibFactor << "\tPt = " << correctedPt 
-// 		   << "\tCorrectedPt = " << recalibFactor*correctedPt << "\n";
+         }
+
+         // 	 std::cout << "CorrectionFactor = " << recalibFactor << "\tPt = " << correctedPt 
+         // 		   << "\tCorrectedPt = " << recalibFactor*correctedPt << "\n";
 
 
-	 // Apply recalibration correction to jet Pt
-	 recalibCorrectedPt = recalibFactor*correctedPt;
+         // Apply recalibration correction to jet Pt
+         recalibCorrectedPt = recalibFactor*correctedPt;
 
        }
        // End secondary calibration
@@ -1414,18 +1421,18 @@ JetCalibProducer::calibrateJet( edm::Handle<l1extra::L1JetParticleCollection> Un
        if ( NVTXLUT.columns != 0){
 
 
-	 double gradient = NVTXLUT.getElement( etaIndex, 1 );
-	 double constant = NVTXLUT.getElement( etaIndex, 0 );
+         double gradient = NVTXLUT.getElement( etaIndex, 1 );
+         double constant = NVTXLUT.getElement( etaIndex, 0 );
 
-	 // Calculate the mean jet response for a given NVTX
-	 double response = gradient*NVTX + constant;
+         // Calculate the mean jet response for a given NVTX
+         double response = gradient*NVTX + constant;
 
-	 // Calculate NVTX-corrected Pt
-	 recalibNVTXCorrectedPt = recalibCorrectedPt/response;
+         // Calculate NVTX-corrected Pt
+         recalibNVTXCorrectedPt = recalibCorrectedPt/response;
 
 
-// 	 std::cout << "DeltaPt = " << deltaPt << "\tPt = " << recalibCorrectedPt 
-// 		   << "\tOffsetCorrectedPt = " << recalibOffsetCorrectedPt << "\n";
+         // 	 std::cout << "DeltaPt = " << deltaPt << "\tPt = " << recalibCorrectedPt 
+         // 		   << "\tOffsetCorrectedPt = " << recalibOffsetCorrectedPt << "\n";
 
 
        }
@@ -1474,7 +1481,7 @@ JetCalibProducer::calibrateJet( edm::Handle<l1extra::L1JetParticleCollection> Un
 
      }
      for (l1extra::L1JetParticleCollection::const_iterator NVTXRecalib_It = unsortedNVTXRecalibratedL1Jets.begin(); 
-	  NVTXRecalib_It != unsortedNVTXRecalibratedL1Jets.end(); ++NVTXRecalib_It ){
+         NVTXRecalib_It != unsortedNVTXRecalibratedL1Jets.end(); ++NVTXRecalib_It ){
 
        // Store calibrated L1Jet
        outputNVTXRecalibJet_L1Jet->push_back( (*NVTXRecalib_It) );
@@ -1487,7 +1494,7 @@ JetCalibProducer::calibrateJet( edm::Handle<l1extra::L1JetParticleCollection> Un
 // Read a LUT stored in a textfile and store in a flat vector
 void 
 JetCalibProducer::loadLUT( TString filename, std::vector< double > &LUTArr ){
-  
+
   std::ifstream iReadLUT( filename );
 
   if(!iReadLUT){
@@ -1510,18 +1517,18 @@ JetCalibProducer::loadLUT( TString filename, std::vector< double > &LUTArr ){
 double 
 JetCalibProducer::getRecalibFactor( double correctedPt, int row, LUT recalibLUT ){
 
-	   double jetResponse = 0;
-	   double powerPt = 1; // Pt to the current power
+  double jetResponse = 0;
+  double powerPt = 1; // Pt to the current power
 
-	   for (int power = 0; power < recalibLUT.columns; ++power){
+  for (int power = 0; power < recalibLUT.columns; ++power){
 
-	     jetResponse += recalibLUT.getElement( row, power ) * powerPt;
+    jetResponse += recalibLUT.getElement( row, power ) * powerPt;
 
-	     // Increase to next power of Pt
-	     powerPt *= correctedPt;
-	   }
+    // Increase to next power of Pt
+    powerPt *= correctedPt;
+  }
 
-	   return 1/jetResponse;
+  return 1/jetResponse;
 }
 
 
