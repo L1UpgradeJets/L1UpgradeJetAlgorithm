@@ -378,7 +378,7 @@ JetCalibProducer::JetCalibProducer(const edm::ParameterSet& iConfig): conf_(iCon
   // PUSak5PrePUS 
   pTCalibration_PUS_ak5PUS    = iConfig.getParameter< std::vector< double > >("pTCalibration_PUS_ak5PUS");            
   // PUSak5PUS
-  //pTCalibration_LPUS_ak5PUS   = iConfig.getParameter< std::vector< double > >("pTCalibration_LPUS_ak5PUS");            
+  pTCalibration_LPUS_ak5PUS   = iConfig.getParameter< std::vector< double > >("pTCalibration_LPUS_ak5PUS");            
   // ak5PUSRaw
   //pTCalibration_ak5PUSRaw_ak5PUS = iConfig.getParameter< std::vector< double > >("pTCalibration_ak5PUSRaw_ak5PUS");
 
@@ -618,12 +618,12 @@ JetCalibProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      evValid = false;
    }
 
-//   edm::Handle<l1extra::L1JetParticleCollection> UncalibJetLPUS_L1Jet;
-//   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("UncalibratedLPUSL1Jet"), UncalibJetLPUS_L1Jet);
-//   if(!UncalibJetLPUS_L1Jet.isValid()){
-//     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("UncalibratedLPUSL1Jet") << std::endl;
-//     evValid = false;
-//   }
+   edm::Handle<l1extra::L1JetParticleCollection> UncalibJetLPUS_L1Jet;
+   iEvent.getByLabel(conf_.getParameter<edm::InputTag>("UncalibratedLPUSL1Jet"), UncalibJetLPUS_L1Jet);
+   if(!UncalibJetLPUS_L1Jet.isValid()){
+     edm::LogWarning("MissingProduct") << conf_.getParameter<edm::InputTag>("UncalibratedLPUSL1Jet") << std::endl;
+     evValid = false;
+   }
 
 
 
@@ -765,15 +765,15 @@ JetCalibProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
      // LPUS
-//     calibrateJet( UncalibJetLPUS_L1Jet, pTCalibration_LPUS_ak5PUS, fitOrder,
-//		   outputCalibTowerJetLPUSak5PUS_L1Jet, 
-//		   outputRecalibTowerJetLPUSak5PUS_L1Jet, 
-//		   outputNVTXRecalibTowerJetLPUSak5PUS_L1Jet, 
-//		   true,
-//		   recalibLowPt_LPUS_ak5PUS,
-//		   recalibHighPt_LPUS_ak5PUS,
-//		   emptyLUT,
-//		   LUTPtTransition	   );
+     calibrateJet( UncalibJetLPUS_L1Jet, pTCalibration_LPUS_ak5PUS, fitOrder,
+		   outputCalibTowerJetLPUSak5PUS_L1Jet, 
+	     outputRecalibTowerJetLPUSak5PUS_L1Jet, 
+		   outputNVTXRecalibTowerJetLPUSak5PUS_L1Jet, 
+		   true,
+		   emptyLUT,
+		   emptyLUT,
+		   emptyLUT,
+		   LUTPtTransition	   );
 
 
 
