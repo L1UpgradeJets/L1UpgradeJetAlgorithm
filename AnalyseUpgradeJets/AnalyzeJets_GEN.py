@@ -4,7 +4,7 @@ from lutables_cfi import *
 
 #import QcdAnalyzeJetsInput 
 
-gFileName = cms.string('OutputJetsQcd_L1Pt1_Eta2p5_NewCalib5.root')
+gFileName = cms.string('OutputJetsQcd_JetDiam9_Dr0p3_justold.root')
 #cms.options.SkipEvent = cms.untracked.vstring('ProductNotFound')
 # **************************************************
 # *                  Thresholds                    *
@@ -42,9 +42,10 @@ process.source = cms.Source("PoolSource",
                             #fileNames = cms.untracked.vstring( 'root://gfe02.grid.hep.ph.ic.ac.uk/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/mbaber/SingleMu_20Feb_11x11/JetCollections_224_1_l1V.root'),
                             #fileNames = QcdAnalyzeJetsInput.readFiles,
                             fileNames = cms.untracked.vstring(
-			        '/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_15to40/JetCollections_QCD_Pt_15to40.root',
-                            	'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_40to100/JetCollections_QCD_Pt_40to100.root',
-                            	'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_100to300/JetCollections_QCD_Pt_100to300.root'
+			        #'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_15to40/JetCollections_QCD_Pt_15to40.root',
+               #             	'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_40to100/JetCollections_QCD_Pt_40to100.root',
+                #            	'/store/cmst3/user/nckw/l1jet/pu140/nocalib/QCD_Pt_100to300/JetCollections_QCD_Pt_100to300.root',
+                              '/store/user/aelwood/PU140JetCollectionsQcd.root'
 			    ),
                             #fileNames = cms.untracked.vstring('file:JetCollections_QCD_Pt_40to100.root'),
    skipEvents = cms.untracked.uint32(0)
@@ -93,6 +94,24 @@ newCalibration_PUS_ak5PUSLUT_14Apr.extend([
   1.250919,       1.517402,       9.984159,       0.281036,       1.307387,       3.714273,
   1.204024,       0.000008,       9.976019,       0.307183,       1.044437,       3.617630,
   1.148003,       0.000000,       8.677759,       0.145034,       2.801464,       3.939712,
+])
+
+newCalibration_LPUS_ak5PUSLUT_16Apr = cms.vdouble()
+newCalibration_LPUS_ak5PUSLUT_16Apr.extend([
+                0.866783,       8.239555,       -0.785756,      0.059880,       9.999274,       3.962486,
+                0.991310,       6.885619,       7.780726,       0.790975,       0.250445,       2.109266,
+                1.394256,       0.508591,       9.999900,       0.395014,       1.831588,       3.565886,
+                1.279758,       0.000005,       9.798381,       0.388833,       1.176606,       3.789690,
+                1.241661,       0.000001,       9.892813,       0.457486,       0.660498,       3.520486,
+                1.220250,       1.958038,       9.874494,       0.381387,       1.071160,       3.734402,
+                1.278001,       0.000004,       9.164153,       0.395421,       0.924987,       3.640131,
+                1.278001,       0.000004,       9.164153,       0.395421,       0.924987,       3.640131,
+                1.220250,       1.958038,       9.874494,       0.381387,       1.071160,       3.734402,
+                1.241661,       0.000001,       9.892813,       0.457486,       0.660498,       3.520486,
+                1.279758,       0.000005,       9.798381,       0.388833,       1.176606,       3.789690,
+                1.394256,       0.508591,       9.999900,       0.395014,       1.831588,       3.565886,
+                0.991310,       6.885619,       7.780726,       0.790975,       0.250445,       2.109266,
+                0.866783,       8.239555,       -0.785756,      0.059880,       9.999274,       3.962486,
 ])
 
 process.EventProducer = cms.EDProducer('EventProducer',
@@ -254,7 +273,7 @@ process.JetCalibProducer = cms.EDProducer('JetCalibProducer',
                                           #pTCalibration_PrePUS_ak5PUSNVTXLt25 = gCalibration_PrePUS_ak5PUSNVTXLt25LUT,
                                           #pTCalibration_PrePUS_ak5PUSNVTXLt50 = gCalibration_PrePUS_ak5PUSNVTXLt50LUT,
                                           pTCalibration_PUS_ak5PUS            = newCalibration_PUS_ak5PUSLUT_14Apr,
-                                          #pTCalibration_LPUS_ak5PUS           = gCalibration_LPUS_ak5PUSLUT,
+                                          pTCalibration_LPUS_ak5PUS           = newCalibration_LPUS_ak5PUSLUT_16Apr,
                                           #pTCalibration_ak5PUSRaw_ak5PUS      = gCalibration_ak5PUSRaw_ak5PUSLUT,
 
 
@@ -404,7 +423,7 @@ process.JetHist = cms.EDAnalyzer('JetHist',
                                  # Matching parameters
                                  # -------------------
 #                                 MaxDeltaR = cms.double(0.7),                                     
-                                 MaxDeltaR = cms.double(0.5),                                     
+                                 MaxDeltaR = cms.double(0.3),                                     
                                  
                                  # iEta bin width to sample to obtain calibration factors
                                  iEtaCalibrationBinWidth = cms.double( 1 ),
